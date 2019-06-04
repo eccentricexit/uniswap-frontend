@@ -283,7 +283,7 @@ export default function CurrencyInputPanel({
           }}
         >
           <Aligner>
-            {selectedTokenAddress ? <TokenLogo address={selectedTokenAddress} /> : null}
+            {selectedTokenAddress ? <TokenLogo address={selectedTokenAddress} symbolMultihash={allTokens[selectedTokenAddress].symbolMultihash} /> : null}
             {
               <StyledTokenName>
                 {(allTokens[selectedTokenAddress] && allTokens[selectedTokenAddress].symbol) || t('selectToken')}
@@ -363,7 +363,8 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
         return {
           name: allTokens[k].name,
           symbol: allTokens[k].symbol,
-          address: k
+          address: k,
+          symbolMultihash: allTokens[k].symbolMultihash
         }
       })
   }, [allTokens])
@@ -407,10 +408,11 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
       return <TokenModalInfo>{t('noExchange')}</TokenModalInfo>
     }
 
-    return filteredTokenList.map(({ address, symbol }) => {
+    return filteredTokenList.map(({ address, symbol, name, symbolMultihash }) => {
       return (
         <TokenModalRow key={address} onClick={() => _onTokenSelect(address)}>
-          <TokenLogo address={address} />
+          <TokenLogo address={address} symbolMultihash={symbolMultihash}/>
+          <span id="name">{name}</span>
           <span id="symbol">{symbol}</span>
         </TokenModalRow>
       )

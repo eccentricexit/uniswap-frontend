@@ -4,8 +4,6 @@ import { ethers } from 'ethers'
 
 import {
   isAddress,
-  getTokenName,
-  getTokenSymbol,
   getTokenDecimals,
   getTokenExchangeAddressFromFactory,
   safeAccess
@@ -107,29 +105,27 @@ export function useTokenDetails(tokenAddress) {
 
   const [state, { update }] = useTokensContext()
   const allTokensInNetwork = { ...ETH, ...(safeAccess(state, [networkId]) || {}) }
-  const { [NAME]: name, [SYMBOL]: symbol, [DECIMALS]: decimals, [EXCHANGE_ADDRESS]: exchangeAddress } =
+  const { [NAME]: name, [SYMBOL]: symbol, [DECIMALS]: decimals, [EXCHANGE_ADDRESS]: exchangeAddress, [SYMBOL_MULTIHASH]: symbolMultihash } =
     safeAccess(allTokensInNetwork, [tokenAddress]) || {}
 
   useEffect(() => {
     if (
       isAddress(tokenAddress) &&
-      (name === undefined || symbol === undefined || decimals === undefined || exchangeAddress === undefined) &&
+      (decimals === undefined || exchangeAddress === undefined) &&
       (networkId || networkId === 0) &&
       library
     ) {
       let stale = false
 
-      const namePromise = getTokenName(tokenAddress, library).catch(() => null)
-      const symbolPromise = getTokenSymbol(tokenAddress, library).catch(() => null)
       const decimalsPromise = getTokenDecimals(tokenAddress, library).catch(() => null)
       const exchangeAddressPromise = getTokenExchangeAddressFromFactory(tokenAddress, networkId, library).catch(
         () => null
       )
 
-      Promise.all([namePromise, symbolPromise, decimalsPromise, exchangeAddressPromise]).then(
-        ([resolvedName, resolvedSymbol, resolvedDecimals, resolvedExchangeAddress]) => {
+      Promise.all([decimalsPromise, exchangeAddressPromise]).then(
+        ([resolvedDecimals, resolvedExchangeAddress]) => {
           if (!stale) {
-            update(networkId, tokenAddress, resolvedName, resolvedSymbol, resolvedDecimals, resolvedExchangeAddress)
+            update(networkId, tokenAddress, name, symbol, symbolMultihash, resolvedDecimals, resolvedExchangeAddress)
           }
         }
       )
@@ -138,9 +134,9 @@ export function useTokenDetails(tokenAddress) {
         stale = true
       }
     }
-  }, [tokenAddress, name, symbol, decimals, exchangeAddress, networkId, library, update])
+  }, [tokenAddress, name, symbol, decimals, exchangeAddress, symbolMultihash, networkId, library, update])
 
-  return { name, symbol, decimals, exchangeAddress }
+  return { name, symbol, decimals, exchangeAddress, symbolMultihash }
 }
 
 export function useAllTokenDetails(requireExchange = false) {
