@@ -283,7 +283,12 @@ export default function CurrencyInputPanel({
           }}
         >
           <Aligner>
-            {selectedTokenAddress ? <TokenLogo address={selectedTokenAddress} symbolMultihash={allTokens[selectedTokenAddress].symbolMultihash} /> : null}
+            {selectedTokenAddress ? (
+              <TokenLogo
+                address={selectedTokenAddress}
+                symbolMultihash={allTokens[selectedTokenAddress].symbolMultihash}
+              />
+            ) : null}
             {
               <StyledTokenName>
                 {(allTokens[selectedTokenAddress] && allTokens[selectedTokenAddress].symbol) || t('selectToken')}
@@ -350,23 +355,26 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
   const allTokens = useAllTokenDetails()
   const tokenList = useMemo(() => {
     return Object.keys(allTokens)
+      .map(key => ({
+        ...allTokens[key],
+        address: key
+      }))
       .sort((a, b) => {
-        const aSymbol = allTokens[a].symbol.toLowerCase()
-        const bSymbol = allTokens[b].symbol.toLowerCase()
+        const aSymbol = a.symbol.toLowerCase()
+        const bSymbol = b.symbol.toLowerCase()
         if (aSymbol === 'ETH'.toLowerCase() || bSymbol === 'ETH'.toLowerCase()) {
           return aSymbol === bSymbol ? 0 : aSymbol === 'ETH'.toLowerCase() ? -1 : 1
         } else {
           return aSymbol < bSymbol ? -1 : aSymbol > bSymbol ? 1 : 0
         }
       })
-      .map(k => {
-        return {
-          name: allTokens[k].name,
-          symbol: allTokens[k].symbol,
-          address: k,
-          symbolMultihash: allTokens[k].symbolMultihash
-        }
-      })
+      .map(token => ({
+          name: token.name,
+          symbol: token.symbol,
+          address: token.address,
+          symbolMultihash: token.symbolMultihash
+        })
+      )
   }, [allTokens])
   const filteredTokenList = useMemo(() => {
     return tokenList.filter(tokenEntry => {
@@ -411,9 +419,9 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
     return filteredTokenList.map(({ address, symbol, name, symbolMultihash }) => {
       return (
         <TokenModalRow key={address} onClick={() => _onTokenSelect(address)}>
-          <TokenLogo address={address} symbolMultihash={symbolMultihash}/>
-          <span id="name">{name}</span>
-          <span id="symbol">{symbol}</span>
+          <TokenLogo address={address} symbolMultihash={symbolMultihash} />
+          <span id="name">{name || address}</span>
+          <span id="symbol">{symbol || ''}</span>
         </TokenModalRow>
       )
     })

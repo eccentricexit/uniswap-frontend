@@ -2,12 +2,7 @@ import React, { createContext, useContext, useReducer, useMemo, useCallback, use
 import { useWeb3Context } from 'web3-react'
 import { ethers } from 'ethers'
 
-import {
-  isAddress,
-  getTokenDecimals,
-  getTokenExchangeAddressFromFactory,
-  safeAccess
-} from '../utils'
+import { isAddress, getTokenDecimals, getTokenExchangeAddressFromFactory, safeAccess } from '../utils'
 
 import getT2CRTokens from '../utils/get-t2cr-tokens'
 
@@ -105,8 +100,13 @@ export function useTokenDetails(tokenAddress) {
 
   const [state, { update }] = useTokensContext()
   const allTokensInNetwork = { ...ETH, ...(safeAccess(state, [networkId]) || {}) }
-  const { [NAME]: name, [SYMBOL]: symbol, [DECIMALS]: decimals, [EXCHANGE_ADDRESS]: exchangeAddress, [SYMBOL_MULTIHASH]: symbolMultihash } =
-    safeAccess(allTokensInNetwork, [tokenAddress]) || {}
+  const {
+    [NAME]: name,
+    [SYMBOL]: symbol,
+    [DECIMALS]: decimals,
+    [EXCHANGE_ADDRESS]: exchangeAddress,
+    [SYMBOL_MULTIHASH]: symbolMultihash
+  } = safeAccess(allTokensInNetwork, [tokenAddress]) || {}
 
   useEffect(() => {
     if (
@@ -122,13 +122,19 @@ export function useTokenDetails(tokenAddress) {
         () => null
       )
 
-      Promise.all([decimalsPromise, exchangeAddressPromise]).then(
-        ([resolvedDecimals, resolvedExchangeAddress]) => {
-          if (!stale) {
-            update(networkId, tokenAddress, name, symbol, symbolMultihash, resolvedDecimals, resolvedExchangeAddress)
-          }
+      Promise.all([decimalsPromise, exchangeAddressPromise]).then(([resolvedDecimals, resolvedExchangeAddress]) => {
+        if (!stale) {
+          update(
+            networkId,
+            tokenAddress,
+            name ? name : '',
+            symbol ? symbol : '---',
+            symbolMultihash ? symbolMultihash : '',
+            resolvedDecimals,
+            resolvedExchangeAddress
+          )
         }
-      )
+      })
 
       return () => {
         stale = true
