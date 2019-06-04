@@ -53,6 +53,7 @@ const theme = {
   royalBlue: '#2F80ED',
   // purples
   wisteriaPurple: '#DC6BE5',
+  klerosPurple: '#1E075F',
   // reds
   salmonRed: '#FF6871',
   // orange
@@ -80,7 +81,7 @@ export const GlobalStyle = createGlobalStyle`
   @supports (font-variation-settings: normal) {
     html { font-family: 'Inter var', sans-serif; }
   }
-  
+
   html,
   body {
     margin: 0;
