@@ -186,6 +186,28 @@ const TokenModalRow = styled.div`
   }
 `
 
+const TokenModalRowWarning = styled.div`
+  ${({ theme }) => theme.flexRowNoWrap}
+  align-items: center;
+  padding: 1rem 1.5rem;
+  margin: 0.25rem 1.5rem;
+  justify-content: space-between;
+  user-select: none;
+  background-color: ${({ theme }) => theme.warningYellow};
+  padding: 5px;
+  border-radius: 0 0 10px 10px;
+  margin-top: -0.25em;
+  font-size: 0.8em;
+
+  a {
+    color: ${({ theme }) => theme.royalBlue};
+
+    :visited {
+      color: ${({ theme }) => theme.royalBlue};
+    }
+  }
+`
+
 const StyledTokenName = styled.span`
   margin: 0 0.25rem 0 0.25rem;
 `
@@ -418,11 +440,20 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
 
     return filteredTokenList.map(({ address, symbol, name, symbolMultihash }) => {
       return (
-        <TokenModalRow key={address} onClick={() => _onTokenSelect(address)}>
-          <TokenLogo address={address} symbolMultihash={symbolMultihash} />
-          <span id="name">{name || address}</span>
-          <span id="symbol">{symbol || ''}</span>
-        </TokenModalRow>
+        <div>
+          <TokenModalRow key={address} onClick={() => _onTokenSelect(address)}>
+            <TokenLogo address={address} symbolMultihash={symbolMultihash} />
+            <span id="name">{name || address}</span>
+            <span id="symbol">{symbol || ''}</span>
+          </TokenModalRow>
+          {symbol === '---' && searchQuery && (
+            <TokenModalRowWarning key={`${address}-warning`}>
+              <span>Warning: This token doesn't have the ERC20 badge on the Token TCR.</span>
+              <a href="https://tokens.kleros.io"><span>Click to Submit</span></a>
+            </TokenModalRowWarning>
+          )}
+        </div>
+
       )
     })
   }
