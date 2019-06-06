@@ -439,14 +439,14 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
 
     return filteredTokenList.map(({ address, symbol, name, symbolMultihash }) => {
       return (
-        <div>
+        <div key={address}>
           <TokenModalRow key={address} onClick={() => _onTokenSelect(address)}>
             <TokenLogo address={address} symbolMultihash={symbolMultihash} />
             <span id="name">{name || address}</span>
             <span id="symbol">{symbol || ''}</span>
           </TokenModalRow>
           {symbol === '---' && searchQuery && (
-            <TokenModalRowWarning key={`${address}-warning`}>
+            <TokenModalRowWarning>
               <span>Warning: This token doesn't have the ERC20 badge on the Token TCR.</span>
               <a href="https://tokens.kleros.io">
                 <span>Click to Submit</span>
