@@ -71,5 +71,8 @@
   "tokenAddress": "Adresă Token",
   "label": "Denumire",
   "decimals": "Zecimale",
-  "enterTokenCont": "Setează o adresă de token pentru a continua"
+  "enterTokenCont": "Setează o adresă de token pentru a continua",
+  "warningToken": "Atenție: Acest jeton",
+  "notInT2CR": "nu este prezent pe T²CR",
+  "missingERC20Badge": "nu are insigna ERC20"
 }

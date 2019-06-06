@@ -80,5 +80,8 @@
   "symbol": "Symbol",
   "decimals": "Decimals",
   "enterTokenCont": "Enter a token address to continue",
-  "priceChange": "This trade will cause the price to change by"
+  "priceChange": "This trade will cause the price to change by",
+  "warningToken": "Warning: This token",
+  "notInT2CR": "is not present on the T²CR",
+  "missingERC20Badge": "doesn't have the ERC20 badge"
 }
