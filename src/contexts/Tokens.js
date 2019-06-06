@@ -2,9 +2,9 @@ import React, { createContext, useContext, useReducer, useMemo, useCallback, use
 import { useWeb3Context } from 'web3-react'
 import { ethers } from 'ethers'
 
-import { isAddress, getTokenDecimals, getTokenExchangeAddressFromFactory, safeAccess } from '../utils'
+import { isAddress, getTokenDecimals, getTokenExchangeAddressFromFactory, safeAccess, getTokenInfo } from '../utils'
 
-import getT2CRTokens from '../utils/get-t2cr-tokens'
+import getTokensWithBadge from '../utils/get-tokens-with-badge'
 
 const NAME = 'name'
 const SYMBOL = 'symbol'
@@ -12,6 +12,7 @@ const DECIMALS = 'decimals'
 const EXCHANGE_ADDRESS = 'exchangeAddress'
 const SYMBOL_MULTIHASH = 'symbolMultihash'
 const ADDRESS = 'address'
+const MISSING_ERC20_BADGE = 'missingERC20Badge'
 
 const UPDATE = 'UPDATE'
 
@@ -20,7 +21,8 @@ const ETH = {
     [NAME]: 'Ethereum',
     [SYMBOL]: 'ETH',
     [DECIMALS]: 18,
-    [EXCHANGE_ADDRESS]: null
+    [EXCHANGE_ADDRESS]: null,
+    [MISSING_ERC20_BADGE]: false
   }
 }
 
@@ -33,7 +35,16 @@ function useTokensContext() {
 function reducer(state, { type, payload }) {
   switch (type) {
     case UPDATE: {
-      const { networkId, tokenAddress, name, symbol, decimals, exchangeAddress, symbolMultihash } = payload
+      const {
+        networkId,
+        tokenAddress,
+        name,
+        symbol,
+        decimals,
+        exchangeAddress,
+        symbolMultihash,
+        missingERC20Badge
+      } = payload
       return {
         ...state,
         [networkId]: {
@@ -43,7 +54,8 @@ function reducer(state, { type, payload }) {
             [SYMBOL]: symbol,
             [SYMBOL_MULTIHASH]: symbolMultihash,
             [DECIMALS]: decimals,
-            [EXCHANGE_ADDRESS]: exchangeAddress
+            [EXCHANGE_ADDRESS]: exchangeAddress,
+            [MISSING_ERC20_BADGE]: missingERC20Badge
           }
         }
       }
@@ -57,26 +69,39 @@ function reducer(state, { type, payload }) {
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, { 1: {} })
 
-  const update = useCallback((networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress) => {
-    dispatch({
-      type: UPDATE,
-      payload: { networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress }
-    })
-  }, [])
+  const update = useCallback(
+    (networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress, missingERC20Badge) => {
+      dispatch({
+        type: UPDATE,
+        payload: {
+          networkId,
+          tokenAddress,
+          name,
+          symbol,
+          symbolMultihash,
+          decimals,
+          exchangeAddress,
+          missingERC20Badge
+        }
+      })
+    },
+    []
+  )
 
   const { library, networkId } = useWeb3Context()
 
   useEffect(() => {
     const fetchFromT2CR = async () => {
       if (library) {
-        const tokens = (await getT2CRTokens(library, networkId)).map(
+        const tokens = (await getTokensWithBadge(library, networkId)).map(
           token => ({
             [SYMBOL]: token[0],
             [ADDRESS]: token[1],
             [NAME]: token[2],
             [SYMBOL_MULTIHASH]: token[3],
             [DECIMALS]: null,
-            [EXCHANGE_ADDRESS]: null
+            [EXCHANGE_ADDRESS]: null,
+            [MISSING_ERC20_BADGE]: false
           }),
           {}
         )
@@ -121,20 +146,36 @@ export function useTokenDetails(tokenAddress) {
       const exchangeAddressPromise = getTokenExchangeAddressFromFactory(tokenAddress, networkId, library).catch(
         () => null
       )
+      let tokenInfoPromise
+      if (!name || !symbol || !symbolMultihash) {
+        tokenInfoPromise = getTokenInfo(tokenAddress, library, networkId)
+      }
 
-      Promise.all([decimalsPromise, exchangeAddressPromise]).then(([resolvedDecimals, resolvedExchangeAddress]) => {
-        if (!stale) {
-          update(
-            networkId,
-            tokenAddress,
-            name ? name : '',
-            symbol ? symbol : '---',
-            symbolMultihash ? symbolMultihash : '',
-            resolvedDecimals,
-            resolvedExchangeAddress
-          )
+      Promise.all([decimalsPromise, exchangeAddressPromise, tokenInfoPromise]).then(
+        ([resolvedDecimals, resolvedExchangeAddress, resolvedTokenInfo]) => {
+          let tokenInfoName
+          let tokenInfoTicker
+          let tokenInfoSymbolMultihash
+          if (resolvedTokenInfo) {
+            tokenInfoName = resolvedTokenInfo.name
+            tokenInfoTicker = resolvedTokenInfo.ticker
+            tokenInfoSymbolMultihash = resolvedTokenInfo.symbolMultihash
+          }
+
+          if (!stale) {
+            update(
+              networkId,
+              tokenAddress,
+              name || tokenInfoName || '',
+              symbol || tokenInfoTicker || '---',
+              symbolMultihash || tokenInfoSymbolMultihash || '',
+              resolvedDecimals,
+              resolvedExchangeAddress,
+              !!resolvedTokenInfo
+            )
+          }
         }
-      })
+      )
 
       return () => {
         stale = true

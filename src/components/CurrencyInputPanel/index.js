@@ -394,7 +394,8 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
         name: token.name,
         symbol: token.symbol,
         address: token.address,
-        symbolMultihash: token.symbolMultihash
+        symbolMultihash: token.symbolMultihash,
+        missingERC20Badge: token.missingERC20Badge
       }))
   }, [allTokens])
   const filteredTokenList = useMemo(() => {
@@ -403,6 +404,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
       const regexMatches = Object.keys(tokenEntry).map(tokenEntryKey => {
         return (
           tokenEntry[tokenEntryKey] &&
+          typeof tokenEntry[tokenEntryKey] !== 'boolean' &&
           !!tokenEntry[tokenEntryKey].match(new RegExp(escapeStringRegex(searchQuery), 'i'))
         )
       })
@@ -437,7 +439,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
       return <TokenModalInfo>{t('noExchange')}</TokenModalInfo>
     }
 
-    return filteredTokenList.map(({ address, symbol, name, symbolMultihash }) => {
+    return filteredTokenList.map(({ address, symbol, name, symbolMultihash, missingERC20Badge }) => {
       return (
         <div key={address}>
           <TokenModalRow key={address} onClick={() => _onTokenSelect(address)}>
@@ -445,9 +447,9 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
             <span id="name">{name || address}</span>
             <span id="symbol">{symbol || ''}</span>
           </TokenModalRow>
-          {symbol === '---' && searchQuery && (
+          {missingERC20Badge && searchQuery && (
             <TokenModalRowWarning>
-              <span>Warning: This token doesn't have the ERC20 badge on the Token TCR.</span>
+              <span>Warning: This token doesn't have the ERC20 badge on the T²CR.</span>
               <a href="https://tokens.kleros.io">
                 <span>Click to Submit</span>
               </a>

@@ -3,8 +3,9 @@ import { ethers } from 'ethers'
 import FACTORY_ABI from '../constants/abis/factory'
 import EXCHANGE_ABI from '../constants/abis/exchange'
 import ERC20_ABI from '../constants/abis/erc20'
+import T2CR_ABI from '../constants/abis/arbitrable-token-list'
 import ERC20_BYTES32_ABI from '../constants/abis/erc20_bytes32'
-import { FACTORY_ADDRESSES } from '../constants'
+import { FACTORY_ADDRESSES, T2CR_ADDRESSES } from '../constants'
 
 import UncheckedJsonRpcSigner from './signer'
 
@@ -166,6 +167,23 @@ export async function getTokenDecimals(tokenAddress, library) {
       error.code = ERROR_CODES.TOKEN_DECIMALS
       throw error
     })
+}
+
+export async function getTokenInfo(tokenAddress, library, networkId) {
+  if (!isAddress(tokenAddress)) {
+    throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
+  }
+
+  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+  const t2cr = getContract(T2CR_ADDRESSES[networkId], T2CR_ABI, library, ZERO_ADDRESS)
+
+  const ZERO_ID = '0x0000000000000000000000000000000000000000000000000000000000000000'
+  const filter = [false, true, false, true, false, true, false, false]
+  const tokenIDs = (await t2cr.queryTokens(ZERO_ID, 1, filter, true, tokenAddress)).filter(ID => ID !== ZERO_ID)
+
+  if (tokenIDs.length === 0) return null
+
+  return t2cr.getTokenInfo(tokenIDs[0][0])
 }
 
 // get the exchange address for a token from the factory
