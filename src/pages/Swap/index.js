@@ -525,7 +525,6 @@ export default function Swap() {
                 Math.min(4, dependentDecimals)
               )} ${outputSymbol}`
             )}{' '}
-            {t('orTransFail')}
           </LastSummaryText>
           <LastSummaryText>
             {(slippageWarning || highSlippageWarning) && (
