@@ -391,12 +391,11 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
         }
       })
       .map(token => ({
-          name: token.name,
-          symbol: token.symbol,
-          address: token.address,
-          symbolMultihash: token.symbolMultihash
-        })
-      )
+        name: token.name,
+        symbol: token.symbol,
+        address: token.address,
+        symbolMultihash: token.symbolMultihash
+      }))
   }, [allTokens])
   const filteredTokenList = useMemo(() => {
     return tokenList.filter(tokenEntry => {
@@ -449,11 +448,12 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
           {symbol === '---' && searchQuery && (
             <TokenModalRowWarning key={`${address}-warning`}>
               <span>Warning: This token doesn't have the ERC20 badge on the Token TCR.</span>
-              <a href="https://tokens.kleros.io"><span>Click to Submit</span></a>
+              <a href="https://tokens.kleros.io">
+                <span>Click to Submit</span>
+              </a>
             </TokenModalRowWarning>
           )}
         </div>
-
       )
     })
   }

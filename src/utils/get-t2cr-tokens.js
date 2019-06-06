@@ -8,12 +8,7 @@ const ZERO_ID = '0x0000000000000000000000000000000000000000000000000000000000000
 const filter = [false, true, false, true, false, true, false, false]
 
 export default async (library, networkId) => {
-  const arbitrableTokenList = getContract(
-    T2CR_ADDRESSES[networkId],
-    _arbitrableTokenList,
-    library,
-    ZERO_ADDRESS
-  )
+  const arbitrableTokenList = getContract(T2CR_ADDRESSES[networkId], _arbitrableTokenList, library, ZERO_ADDRESS)
   const arbitrableAddressList = getContract(
     ERC20_BADGE_ADDRESSES[networkId],
     _arbitrableAddressList,
