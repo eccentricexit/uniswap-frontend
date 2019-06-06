@@ -1,5 +1,6 @@
 import _arbitrableAddressList from '../constants/abis/arbitrable-address-list.json'
 import _arbitrableTokenList from '../constants/abis/arbitrable-token-list.json'
+import { T2CR_ADDRESSES, ERC20_BADGE_ADDRESSES } from '../constants/index'
 import { getContract } from './index'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -8,15 +9,13 @@ const filter = [false, true, false, true, false, true, false, false]
 
 export default async (library, networkId) => {
   const arbitrableTokenList = getContract(
-    networkId === 42 ? process.env.REACT_APP_T2CR_KOVAN_ADDRESS : process.env.REACT_APP_T2CR_MAINNET_ADDRESS,
+    T2CR_ADDRESSES[networkId],
     _arbitrableTokenList,
     library,
     ZERO_ADDRESS
   )
   const arbitrableAddressList = getContract(
-    networkId === 42
-      ? process.env.REACT_APP_ERC20BADGE_KOVAN_ADDRESS
-      : process.env.REACT_APP_ERC20BADGE_MAINNET_ADDRESS,
+    ERC20_BADGE_ADDRESSES[networkId],
     _arbitrableAddressList,
     library,
     ZERO_ADDRESS
