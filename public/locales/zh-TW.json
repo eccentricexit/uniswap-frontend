@@ -73,6 +73,6 @@
   "decimals": "小數位數",
   "enterTokenCont": "輸入代幣地址",
   "warningToken": "警告：此令牌",
-  "notInT2CR": "T²CR上没有",
-  "missingERC20Badge": "没有ERC20徽章"
+  "notInT2CR": "未列入T²CR",
+  "missingERC20Badge": "未获取ERC20徽章"
 }
