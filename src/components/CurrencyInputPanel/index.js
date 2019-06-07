@@ -450,9 +450,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
           {missingERC20Badge && searchQuery && (
             <TokenModalRowWarning>
               <span>
-                {t('warningToken')}{' '}{
-                  !symbol ? t('notInT2CR') : t('missingERC20Badge')
-                }.
+                {t('warningToken')} {!symbol ? t('notInT2CR') : t('missingERC20Badge')}.
               </span>
               <a href="https://tokens.kleros.io">
                 <span>Click to Submit</span>

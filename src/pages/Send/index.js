@@ -64,6 +64,7 @@ const ExchangeRateWrapper = styled.div`
   color: ${({ theme }) => theme.doveGray};
   font-size: 0.75rem;
   padding: 0.5rem 1rem;
+  cursor: pointer;
 `
 
 const ExchangeRate = styled.span`
@@ -751,7 +752,7 @@ export default function Swap() {
       <OversizedPanel hideBottom>
         <ExchangeRateWrapper
           onClick={() => {
-            setInverted(inverted => !inverted)
+            setInverted(!inverted)
           }}
         >
           <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
