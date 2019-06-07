@@ -358,6 +358,7 @@ export default function Swap() {
     if (swapType === ETH_TO_TOKEN) {
       const reserveETH = outputReserveETH
       const reserveToken = outputReserveToken
+      setInverted(true)
 
       if (amount && reserveETH && reserveToken) {
         try {
