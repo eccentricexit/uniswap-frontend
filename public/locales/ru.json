@@ -74,5 +74,6 @@
   "enterTokenCont": "Чтобы продолжить, введите адрес токена",
   "warningToken": "Предупреждение: этот токен",
   "notInT2CR": "отсутствует на T²CR",
-  "missingERC20Badge": "не имеет значка ERC20"
+  "missingERC20Badge": "не имеет значка ERC20",
+  "liquidity": "ликвидности"
 }

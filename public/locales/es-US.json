@@ -74,5 +74,6 @@
 	"enterTokenCont": "Ingrese una dirección de token para continuar",
 	"warningToken": "Advertencia: Este token",
   	"notInT2CR": "no está presente en el T²CR",
-  	"missingERC20Badge": "no tiene la insignia ERC20"
+	"missingERC20Badge": "no tiene la insignia ERC20",
+	"liquidity": "Liquidez"
 }

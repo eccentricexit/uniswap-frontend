@@ -75,5 +75,6 @@
   "enterTokenCont": "Tokenadresse eingeben um fortzufahren",
   "warningToken": "Warnung: Dieses Token",
   "notInT2CR": "ist auf dem T²CR nicht vorhanden",
-  "missingERC20Badge": "hat nicht das ERC20 Abzeichen"
+  "missingERC20Badge": "hat nicht das ERC20 Abzeichen",
+  "liquidity": "Liquidität"
 }

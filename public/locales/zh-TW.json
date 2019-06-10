@@ -74,5 +74,6 @@
   "enterTokenCont": "輸入代幣地址",
   "warningToken": "警告：此令牌",
   "notInT2CR": "未列入T²CR",
-  "missingERC20Badge": "未获取ERC20徽章"
+  "missingERC20Badge": "未获取ERC20徽章",
+  "liquidity": "流动性"
 }
