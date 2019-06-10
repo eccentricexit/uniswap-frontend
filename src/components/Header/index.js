@@ -65,8 +65,8 @@ export default function Header() {
           <Link href="https://docs.uniswap.io/">
             <ExtraLink>Docs</ExtraLink>
           </Link>
-          <Link href="https://kleros.io">
-            <ExtraLink>Kleros Integration</ExtraLink>
+          <Link href="https://blog.kleros.io/erc20-becomes-part-of-the-token/">
+            <ExtraLink>Add a Token</ExtraLink>
           </Link>
         </Title>
       </HeaderElement>
