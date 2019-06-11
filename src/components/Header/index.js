@@ -10,6 +10,16 @@ const HeaderElement = styled.div`
   margin: 1.25rem;
   display: flex;
   min-width: 0;
+  @media only screen and (max-width: 450px) {
+    margin-right: 0;
+  }
+`
+
+const ConnectElement = styled.div`
+  margin: 1.25rem;
+  margin-left: 0;
+  display: flex;
+  min-width: 0;
 `
 
 const Title = styled.div`
@@ -31,6 +41,9 @@ const Title = styled.div`
     font-weight: 500;
     color: ${({ theme }) => theme.wisteriaPurple};
     margin: 0 10px;
+    @media only screen and (max-width: 450px) {
+      font-size: 0.8rem;
+    }
     :hover {
       color: ${({ theme }) => darken(0.2, theme.wisteriaPurple)};
     }
@@ -48,6 +61,9 @@ const ExtraLink = styled.h1`
   font-weight: 500;
   color: ${({ theme }) => theme.klerosPurple};
   margin: 0 10px;
+  @media only screen and (max-width: 450px) {
+    font-size: 0.8rem;
+  }
   :hover {
     color: ${({ theme }) => darken(0.2, theme.wisteriaPurple)};
   }
@@ -62,18 +78,15 @@ export default function Header() {
           <Link id="link" href="https://uniswap.io">
             <h1 id="title">Uniswap.Ninja</h1>
           </Link>
-          <Link href="https://docs.uniswap.io/">
-            <ExtraLink>Docs</ExtraLink>
-          </Link>
           <Link href="https://blog.kleros.io/erc20-becomes-part-of-the-token/">
             <ExtraLink>Add a Token</ExtraLink>
           </Link>
         </Title>
       </HeaderElement>
 
-      <HeaderElement>
+      <ConnectElement>
         <Web3Status />
-      </HeaderElement>
+      </ConnectElement>
     </>
   )
 }

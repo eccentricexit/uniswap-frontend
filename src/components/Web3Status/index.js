@@ -29,6 +29,10 @@ const Web3StatusGeneric = styled.button`
   :focus {
     outline: none;
   }
+
+  @media only screen and (max-width: 395px) {
+    width: 16vw;
+  }
 `
 const Web3StatusError = styled(Web3StatusGeneric)`
   background-color: ${({ theme }) => theme.salmonRed};

@@ -150,7 +150,6 @@ export function useTokenDetails(tokenAddress) {
       if (!name || !symbol || !symbolMultihash) {
         tokenInfoPromise = getTokenInfo(tokenAddress, library, networkId)
       }
-
       Promise.all([decimalsPromise, exchangeAddressPromise, tokenInfoPromise]).then(
         ([resolvedDecimals, resolvedExchangeAddress, resolvedTokenInfo]) => {
           let tokenInfoName
