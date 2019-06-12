@@ -219,17 +219,7 @@ export default function Web3Status() {
   }, [connectorName, setConnector])
 
   function onClick() {
-    if (walletModalError) {
-      openWalletModal()
-    } else if (connectorName === 'Network' && (window.ethereum || window.web3)) {
-      setConnector('Injected', { suppressAndThrowErrors: true }).catch(error => {
-        if (error.code === Connector.errorCodes.UNSUPPORTED_NETWORK) {
-          setError(error)
-        }
-      })
-    } else {
-      openWalletModal()
-    }
+    openWalletModal()
   }
 
   const ref = useRef()
@@ -275,6 +265,7 @@ export default function Web3Status() {
         {getWeb3Status()}
         <WalletModal
           isOpen={walletModalIsOpen}
+          setError={setError}
           error={walletModalError}
           onDismiss={closeWalletModal}
           ENSName={ENSName}

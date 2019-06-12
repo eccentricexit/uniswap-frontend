@@ -1,6 +1,9 @@
 import React from 'react'
 import styled, { css } from 'styled-components'
-import { useWeb3Context } from 'web3-react'
+import { useWeb3Context, Connectors } from 'web3-react'
+import { useTranslation } from 'react-i18next'
+import { Link2 } from 'react-feather'
+import { darken } from 'polished'
 
 import Transaction from './Transaction'
 import Copy from './Copy'
@@ -8,6 +11,8 @@ import Modal from '../Modal'
 
 import { getEtherscanLink } from '../../utils'
 import { Link } from '../../theme'
+
+const { Connector } = Connectors
 
 const Wrapper = styled.div`
   margin: 0;
@@ -71,7 +76,7 @@ const AccountControl = styled.div`
   ${({ theme }) => theme.flexRowNoWrap}
   align-items: center;
   min-width: 0;
-  
+
   ${({ hasENS, isENS }) =>
     hasENS &&
     isENS &&
@@ -101,6 +106,51 @@ const StyledLink = styled(Link)`
   color: ${({ hasENS, isENS, theme }) => (hasENS ? (isENS ? theme.royalBlue : theme.doveGray) : theme.royalBlue)};
 `
 
+const Text = styled.p`
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 0.5rem 0 0.25rem;
+  font-size: 0.83rem;
+`
+
+const Link2Icon = styled(Link2)`
+  margin-left: 0.25rem;
+  margin-right: 0.5rem;
+  width: 16px;
+  height: 16px;
+`
+
+const Web3StatusGeneric = styled.button`
+  ${({ theme }) => theme.flexRowNoWrap}
+  font-size: 0.9rem;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 2rem;
+  box-sizing: border-box;
+  cursor: pointer;
+  user-select: none;
+  :focus {
+    outline: none;
+  }
+
+  @media only screen and (max-width: 395px) {
+    width: 16vw;
+  }
+`
+
+const Web3StatusConnect = styled(Web3StatusGeneric)`
+  background-color: ${({ theme }) => theme.royalBlue};
+  color: ${({ theme }) => theme.white};
+  border: 1px solid ${({ theme }) => theme.royalBlue};
+  font-weight: 500;
+  :hover,
+  :focus {
+    background-color: ${({ theme }) => darken(0.1, theme.royalBlue)};
+  }
+`
+
 // function getErrorMessage(event) {
 //   switch (event.code) {
 //     case InjectedConnector.errorCodes.ETHEREUM_ACCESS_DENIED: {
@@ -118,8 +168,17 @@ const StyledLink = styled(Link)`
 //   }
 // }
 
-export default function WalletModal({ isOpen, error, onDismiss, pendingTransactions, confirmedTransactions, ENSName }) {
-  const { account, networkId } = useWeb3Context()
+export default function WalletModal({
+  isOpen,
+  error,
+  onDismiss,
+  pendingTransactions,
+  confirmedTransactions,
+  ENSName,
+  setError
+}) {
+  const { account, networkId, connectorName, setConnector } = useWeb3Context()
+  const { t } = useTranslation()
 
   function renderTransactions(transactions, pending) {
     return (
@@ -135,15 +194,34 @@ export default function WalletModal({ isOpen, error, onDismiss, pendingTransacti
     onDismiss()
   }
 
+  function requestLogin() {
+    setConnector('Injected', { suppressAndThrowErrors: true }).catch(error => {
+      if (error.code === Connector.errorCodes.UNSUPPORTED_NETWORK) {
+        setError(error)
+      }
+    })
+    onDismiss()
+  }
+
   function getWalletDisplay() {
-    if (error) {
+    if (connectorName === 'Network' && (window.ethereum || window.web3))
       return (
-        <>
-          <UpperSection>
-            <h4>Wrong Network</h4>
-            <h5>Please connect to the main Ethereum network.</h5>
-          </UpperSection>
-        </>
+        <UpperSection>
+          <h4>Permission required</h4>
+          <h5>Uniswap.Ninja uses your account information to display your balances.</h5>
+          <br />
+          <Web3StatusConnect onClick={requestLogin}>
+            <Text>{t('Connect')}</Text>
+            <Link2Icon />
+          </Web3StatusConnect>
+        </UpperSection>
+      )
+    else if (error) {
+      return (
+        <UpperSection>
+          <h4>Wrong Network</h4>
+          <h5>Please connect to the main Ethereum network.</h5>
+        </UpperSection>
       )
     } else if (account) {
       return (
@@ -185,17 +263,13 @@ export default function WalletModal({ isOpen, error, onDismiss, pendingTransacti
       )
     } else {
       return (
-        <>
-          <UpperSection>
-            <h4>No Ethereum account found</h4>
-            <h5>Please visit this page in a Web3 enabled browser.</h5>
-            <h5>
-              <Link href={'https://ethereum.org/use/#_3-what-is-a-wallet-and-which-one-should-i-use'}>
-                Learn more ↗
-              </Link>
-            </h5>
-          </UpperSection>
-        </>
+        <UpperSection>
+          <h4>No Ethereum account found</h4>
+          <h5>Please visit this page in a Web3 enabled browser.</h5>
+          <h5>
+            <Link href={'https://ethereum.org/use/#_3-what-is-a-wallet-and-which-one-should-i-use'}>Learn more ↗</Link>
+          </h5>
+        </UpperSection>
       )
     }
   }
