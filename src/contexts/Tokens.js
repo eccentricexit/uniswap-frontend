@@ -99,14 +99,14 @@ export default function Provider({ children }) {
             [ADDRESS]: token[1],
             [NAME]: token[2],
             [SYMBOL_MULTIHASH]: token[3],
-            [DECIMALS]: null,
+            [DECIMALS]: token[4],
             [EXCHANGE_ADDRESS]: null,
             [MISSING_ERC20_BADGE]: false
           }),
           {}
         )
         tokens.forEach(token => {
-          update(networkId, token[ADDRESS], token[NAME], token[SYMBOL], token[SYMBOL_MULTIHASH])
+          update(networkId, token[ADDRESS], token[NAME], token[SYMBOL], token[SYMBOL_MULTIHASH], token[DECIMALS])
         })
       }
     }
