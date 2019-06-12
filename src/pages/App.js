@@ -2,7 +2,8 @@ import React, { Suspense, lazy } from 'react'
 import styled from 'styled-components'
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTelegram, faGithub, faTwitter, faMedium } from '@fortawesome/free-brands-svg-icons'
+import { faTelegram, faGithub, faTwitter } from '@fortawesome/free-brands-svg-icons'
+import { faBullhorn } from '@fortawesome/free-solid-svg-icons'
 
 import Web3ReactManager from '../components/Web3ReactManager'
 import Header from '../components/Header'
@@ -98,8 +99,8 @@ export default function App() {
             <SocialLink href="https://github.com/kleros">
               <FontAwesomeIcon size="lg" icon={faGithub} />
             </SocialLink>
-            <SocialLink href="https://medium.com/kleros">
-              <FontAwesomeIcon size="lg" icon={faMedium} />
+            <SocialLink href="https://blog.kleros.io">
+              <FontAwesomeIcon size="lg" icon={faBullhorn} />
             </SocialLink>
             <SocialLink href="https://twitter.com/kleros_io">
               <FontAwesomeIcon size="lg" icon={faTwitter} />
