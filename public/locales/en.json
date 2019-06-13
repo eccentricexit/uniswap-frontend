@@ -84,5 +84,6 @@
   "warningToken": "Warning: This token",
   "notInT2CR": "is not present on the T²CR",
   "missingERC20Badge": "doesn't have the ERC20 badge",
-  "liquidity": "Liquidity"
+  "liquidity": "Liquidity",
+  "marginalPrice": "Marginal Price"
 }

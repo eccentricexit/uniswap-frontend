@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { useWeb3Context } from 'web3-react'
 import { ethers } from 'ethers'
 import styled from 'styled-components'
+import { getTokenReserves, getMarketDetails, formatSignificant } from '@uniswap/sdk'
 
-import { Button } from '../../theme'
+import { Button, Spinner } from '../../theme'
+import Circle from '../../assets/images/circle.svg'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import NewContextualInfo from '../../components/ContextualInfoNew'
 import OversizedPanel from '../../components/OversizedPanel'
@@ -80,6 +82,10 @@ const Flex = styled.div`
   button {
     max-width: 20rem;
   }
+`
+
+const SpinnerWrapper = styled(Spinner)`
+  margin: 0 0.25rem 0 0.25rem;
 `
 
 function calculateSlippageBounds(value, token = false) {
@@ -178,6 +184,12 @@ function swapStateReducer(state, action) {
       return {
         ...state,
         dependentValue: action.payload
+      }
+    }
+    case 'UPDATING_RATE': {
+      return {
+        ...state,
+        updatingRate: action.payload
       }
     }
     default: {
@@ -351,6 +363,9 @@ export default function Swap() {
     }
   }, [independentField, independentValueParsed, dependentValueMaximum, inputBalance, inputCurrency, inputAllowance, t])
 
+  const [tokenReservesInput, setTokenReservesInput] = useState()
+  const [tokenReservesOutput, setTokenReservesOutput] = useState()
+
   // calculate dependent value
   useEffect(() => {
     const amount = independentValueParsed
@@ -358,7 +373,18 @@ export default function Swap() {
     if (swapType === ETH_TO_TOKEN) {
       const reserveETH = outputReserveETH
       const reserveToken = outputReserveToken
-      setInverted(true)
+      dispatchSwapState({
+        type: 'UPDATING_RATE',
+        payload: true
+      })
+      getTokenReserves(outputCurrency).then(reserves => {
+        setTokenReservesOutput(reserves)
+        setTokenReservesInput(null)
+        dispatchSwapState({
+          type: 'UPDATING_RATE',
+          payload: false
+        })
+      })
 
       if (amount && reserveETH && reserveToken) {
         try {
@@ -382,6 +408,18 @@ export default function Swap() {
     } else if (swapType === TOKEN_TO_ETH) {
       const reserveETH = inputReserveETH
       const reserveToken = inputReserveToken
+      dispatchSwapState({
+        type: 'UPDATING_RATE',
+        payload: true
+      })
+      getTokenReserves(inputCurrency).then(reserves => {
+        setTokenReservesOutput(reserves)
+        setTokenReservesInput(null)
+        dispatchSwapState({
+          type: 'UPDATING_RATE',
+          payload: false
+        })
+      })
 
       if (amount && reserveETH && reserveToken) {
         try {
@@ -408,6 +446,23 @@ export default function Swap() {
 
       const reserveETHSecond = outputReserveETH
       const reserveTokenSecond = outputReserveToken
+
+      dispatchSwapState({
+        type: 'UPDATING_RATE',
+        payload: true
+      })
+      getTokenReserves(inputCurrency)
+        .then(reserves => {
+          setTokenReservesInput(reserves)
+          return getTokenReserves(outputCurrency)
+        })
+        .then(reserves => {
+          setTokenReservesOutput(reserves)
+          dispatchSwapState({
+            type: 'UPDATING_RATE',
+            payload: false
+          })
+        })
 
       if (amount && reserveETHFirst && reserveTokenFirst && reserveETHSecond && reserveTokenSecond) {
         try {
@@ -456,8 +511,15 @@ export default function Swap() {
     inputReserveETH,
     inputReserveToken,
     independentField,
-    t
+    t,
+    inputCurrency,
+    outputCurrency
   ])
+
+  const marketDetails =
+    tokenReservesInput && tokenReservesOutput
+      ? getMarketDetails(tokenReservesInput, tokenReservesOutput)
+      : tokenReservesOutput && getMarketDetails(undefined, tokenReservesOutput)
 
   const [inverted, setInverted] = useState(false)
   const exchangeRate = getExchangeRate(inputValueParsed, inputDecimals, outputValueParsed, outputDecimals)
@@ -504,6 +566,22 @@ export default function Swap() {
 
     const b = text => <BlueSpan>{text}</BlueSpan>
 
+    const MarginalPriceDisplay = swapState.updatingRate ? (
+      <SpinnerWrapper src={Circle} />
+    ) : swapType === ETH_TO_TOKEN || swapType === TOKEN_TO_TOKEN ? (
+      <span>
+        {marketDetails
+          ? `1 ${outputSymbol} = ${formatSignificant(1 / marketDetails.marketRate.rate)} ${inputSymbol}`
+          : ' - '}
+      </span>
+    ) : (
+      <span>
+        {marketDetails
+          ? `1 ${inputSymbol} = ${formatSignificant(1 / marketDetails.marketRate.rate)} ${outputSymbol}`
+          : ' - '}
+      </span>
+    )
+
     if (independentField === INPUT) {
       return (
         <div>
@@ -536,6 +614,11 @@ export default function Swap() {
             )}
             {t('priceChange')} {b(`${percentSlippageFormatted}%`)}.
           </LastSummaryText>
+          <LastSummaryText>
+            {t('marginalPrice')}
+            {': '}
+            {b(MarginalPriceDisplay)}.
+          </LastSummaryText>
         </div>
       )
     } else {
@@ -565,6 +648,11 @@ export default function Swap() {
           </LastSummaryText>
           <LastSummaryText>
             {t('priceChange')} {b(`${percentSlippageFormatted}%`)}.
+          </LastSummaryText>
+          <LastSummaryText>
+            {t('marginalPrice')}
+            {': '}
+            {b(MarginalPriceDisplay)}.
           </LastSummaryText>
         </div>
       )
@@ -727,16 +815,20 @@ export default function Swap() {
           }}
         >
           <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
-          {inverted ? (
+          {swapType === ETH_TO_TOKEN || swapType === TOKEN_TO_TOKEN ? (
             <span>
               {exchangeRate
-                ? `1 ${outputSymbol} = ${amountFormatter(exchangeRateInverted, 18, 4, false)} ${inputSymbol}`
+                ? inverted
+                  ? `1 ${inputSymbol} = ${amountFormatter(exchangeRate, 18, 4, false)} ${outputSymbol}`
+                  : `1 ${outputSymbol} = ${amountFormatter(exchangeRateInverted, 18, 4, false)} ${inputSymbol}`
                 : ' - '}
             </span>
           ) : (
             <span>
               {exchangeRate
-                ? `1 ${inputSymbol} = ${amountFormatter(exchangeRate, 18, 4, false)} ${outputSymbol}`
+                ? inverted
+                  ? `1 ${outputSymbol} = ${amountFormatter(exchangeRateInverted, 18, 4, false)} ${inputSymbol}`
+                  : `1 ${inputSymbol} = ${amountFormatter(exchangeRate, 18, 4, false)} ${outputSymbol}`
                 : ' - '}
             </span>
           )}

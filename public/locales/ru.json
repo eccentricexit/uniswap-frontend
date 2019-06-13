@@ -75,5 +75,6 @@
   "warningToken": "Предупреждение: этот токен",
   "notInT2CR": "отсутствует на T²CR",
   "missingERC20Badge": "не имеет значка ERC20",
-  "liquidity": "ликвидности"
+  "liquidity": "ликвидности",
+  "marginalPrice": "Предельная цена"
 }

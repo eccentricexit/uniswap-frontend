@@ -75,5 +75,6 @@
   "warningToken": "Atenție: Acest jeton",
   "notInT2CR": "nu este prezent pe T²CR",
   "missingERC20Badge": "nu are insigna ERC20",
-  "liquidity": "Lichiditate"
+  "liquidity": "Lichiditate",
+  "marginalPrice": "Preț marginal"
 }
