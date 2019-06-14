@@ -71,7 +71,6 @@ export default function Provider({ children }) {
 
   const update = useCallback(
     (networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress, missingERC20Badge) => {
-      console.info('dispatching', exchangeAddress)
       dispatch({
         type: UPDATE,
         payload: {
