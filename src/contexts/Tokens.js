@@ -71,6 +71,7 @@ export default function Provider({ children }) {
 
   const update = useCallback(
     (networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress, missingERC20Badge) => {
+      console.info('dispatching', exchangeAddress)
       dispatch({
         type: UPDATE,
         payload: {
@@ -100,13 +101,21 @@ export default function Provider({ children }) {
             [NAME]: token[2],
             [SYMBOL_MULTIHASH]: token[3],
             [DECIMALS]: token[4],
-            [EXCHANGE_ADDRESS]: null,
+            [EXCHANGE_ADDRESS]: token[5],
             [MISSING_ERC20_BADGE]: false
           }),
           {}
         )
         tokens.forEach(token => {
-          update(networkId, token[ADDRESS], token[NAME], token[SYMBOL], token[SYMBOL_MULTIHASH], token[DECIMALS])
+          update(
+            networkId,
+            token[ADDRESS],
+            token[NAME],
+            token[SYMBOL],
+            token[SYMBOL_MULTIHASH],
+            token[DECIMALS],
+            token[EXCHANGE_ADDRESS]
+          )
         })
       }
     }

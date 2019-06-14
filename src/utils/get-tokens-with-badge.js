@@ -1,7 +1,7 @@
 import _arbitrableAddressList from '../constants/abis/arbitrable-address-list.json'
 import _arbitrableTokenList from '../constants/abis/arbitrable-token-list.json'
 import { T2CR_ADDRESSES, ERC20_BADGE_ADDRESSES } from '../constants/index'
-import { getContract, getTokenDecimals } from './index'
+import { getContract, getTokenDecimals, getTokenExchangeAddressFromFactory } from './index'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 const ZERO_ID = '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -27,18 +27,19 @@ export default async (library, networkId) => {
       )
 
       if (tokenIDsForAddr.length === 0) return null
-      const decimals = await getTokenDecimals(address, library)
       return {
         ID: tokenIDsForAddr[0],
-        decimals
+        decimals: await getTokenDecimals(address, library),
+        exchangeAddress: await getTokenExchangeAddressFromFactory(address, networkId, library)
       }
     })
   )
 
   const tokenData = (await Promise.all(
-    submissions.map(async ({ ID, decimals }) => ({
+    submissions.map(async ({ ID, decimals, exchangeAddress }) => ({
       ...(await arbitrableTokenList.getTokenInfo(ID)),
-      decimals
+      decimals,
+      exchangeAddress
     }))
   )).reduce((acc, submission) => {
     if (acc[submission.addr]) acc[submission.addr].push(submission)
@@ -51,6 +52,7 @@ export default async (library, networkId) => {
     address,
     tokenData[address][0].name,
     tokenData[address][0].symbolMultihash,
-    tokenData[address][0].decimals
+    tokenData[address][0].decimals,
+    tokenData[address][0].exchangeAddress
   ])
 }

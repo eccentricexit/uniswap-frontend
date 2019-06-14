@@ -174,7 +174,7 @@ const TokenModalRow = styled.div`
   padding: 1rem 1.5rem;
   margin: 0.25rem 0.5rem;
   justify-content: space-between;
-  cursor: pointer;
+  cursor: ${({ hidePointer }) => (hidePointer ? 'default' : 'pointer')};
   user-select: none;
 
   #symbol {
@@ -395,7 +395,8 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
         symbol: token.symbol,
         address: token.address,
         symbolMultihash: token.symbolMultihash,
-        missingERC20Badge: token.missingERC20Badge
+        missingERC20Badge: token.missingERC20Badge,
+        exchangeAddress: token.exchangeAddress
       }))
   }, [allTokens])
   const filteredTokenList = useMemo(() => {
@@ -439,14 +440,26 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
       return <TokenModalInfo>{t('noExchange')}</TokenModalInfo>
     }
 
-    return filteredTokenList.map(({ address, symbol, name, symbolMultihash, missingERC20Badge }) => {
+    return filteredTokenList.map(({ address, symbol, name, symbolMultihash, missingERC20Badge, exchangeAddress }) => {
       return (
         <div key={address}>
-          <TokenModalRow key={address} onClick={() => _onTokenSelect(address)}>
+          <TokenModalRow
+            key={address}
+            onClick={() => {
+              if (exchangeAddress !== ethers.constants.AddressZero) _onTokenSelect(address)
+            }}
+            hidePointer={exchangeAddress === ethers.constants.AddressZero}
+          >
             <TokenLogo address={address} symbolMultihash={symbolMultihash} />
             <span id="name">{name || address}</span>
             <span id="symbol">{symbol || ''}</span>
           </TokenModalRow>
+          {exchangeAddress === ethers.constants.AddressZero && (
+            <TokenModalRowWarning>
+              <span>No exchange found for this token.</span>
+              <Link to={`/create-exchange/${address}`}>Click to Create</Link>
+            </TokenModalRowWarning>
+          )}
           {missingERC20Badge && searchQuery && (
             <TokenModalRowWarning>
               <span>
