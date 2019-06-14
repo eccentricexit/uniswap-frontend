@@ -1,8 +1,12 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
 import { useWeb3Context } from 'web3-react'
+import { toast } from 'react-toastify'
+import * as moment from 'moment'
+import TimeAgo from 'react-timeago'
 
 import { safeAccess } from '../utils'
 import { useBlockNumber } from './Application'
+import Toast, { TYPE } from '../components/Toast'
 
 const RESPONSE = 'response'
 const CUSTOM_DATA = 'CUSTOM_DATA'
@@ -58,10 +62,18 @@ function reducer(state, { type, payload }) {
     }
     case FINALIZE: {
       const { networkId, hash, receipt } = payload
-
       if (safeAccess(state, [networkId, hash]) === null) {
         throw Error('Attempted to finalize non-existent transaction.')
       }
+      const {
+        response: {
+          [CUSTOM_DATA]: { toastID }
+        }
+      } = safeAccess(state, [networkId, hash])
+      toast.update(toastID, {
+        render: <Toast title="Transaction mined!" type={TYPE.SUCCESS} />,
+        autoClose: 15000
+      })
 
       return {
         ...state,
@@ -149,7 +161,7 @@ export function useTransactionAdder() {
   const [, { add }] = useTransactionsContext()
 
   return useCallback(
-    (response, customData = {}) => {
+    async (response, customData = {}) => {
       if (!(networkId || networkId === 0)) {
         throw Error(`Invalid networkId '${networkId}`)
       }
@@ -159,6 +171,21 @@ export function useTransactionAdder() {
       if (!hash) {
         throw Error('No transaction hash found.')
       }
+      const { avgWait } = await (await fetch('https://ethgasstation.info/json/ethgasAPI.json')).json()
+
+      customData.toastID = toast(
+        <Toast
+          title="Transaction sent!"
+          msg={
+            <>
+              Average wait: {moment.duration(avgWait, 'minutes').humanize()} ({<TimeAgo date={Date.now()} />})
+            </>
+          }
+        />,
+        {
+          className: 'ToastBackground'
+        }
+      )
       add(networkId, hash, { ...response, [CUSTOM_DATA]: customData })
     },
     [networkId, add]

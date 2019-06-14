@@ -4,10 +4,14 @@ import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTelegram, faGithub, faTwitter } from '@fortawesome/free-brands-svg-icons'
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons'
+import { toast } from 'react-toastify'
 
 import Web3ReactManager from '../components/Web3ReactManager'
 import Header from '../components/Header'
 import NavigationTabs from '../components/NavigationTabs'
+
+import 'react-toastify/dist/ReactToastify.css'
+import './toast.css'
 
 const Swap = lazy(() => import('./Swap'))
 const Send = lazy(() => import('./Send'))
@@ -56,6 +60,11 @@ const KlerosLink = styled.a`
     color: white;
   }
 `
+
+toast.configure({
+  autoClose: false,
+  position: 'bottom-right'
+})
 
 export default function App() {
   return (

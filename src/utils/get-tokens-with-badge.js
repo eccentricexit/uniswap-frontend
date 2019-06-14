@@ -20,20 +20,30 @@ export default async (library, networkId) => {
     address => address !== ZERO_ADDRESS
   )
 
-  const submissions = await Promise.all(
+  const submissions = (await Promise.all(
     addressesWithBadge.map(async address => {
       const tokenIDsForAddr = (await arbitrableTokenList.queryTokens(ZERO_ID, 100, filter, true, address))[0].filter(
         ID => ID !== ZERO_ID
       )
 
+      let decimals
+      let exchangeAddress
+      try {
+        decimals = await getTokenDecimals(address, library)
+        exchangeAddress = await getTokenExchangeAddressFromFactory(address, networkId, library)
+      } catch (err) {
+        console.warn('Could not fetch token information for token of address ' + address)
+        return null
+      }
+
       if (tokenIDsForAddr.length === 0) return null
       return {
         ID: tokenIDsForAddr[0],
-        decimals: await getTokenDecimals(address, library),
-        exchangeAddress: await getTokenExchangeAddressFromFactory(address, networkId, library)
+        decimals,
+        exchangeAddress
       }
     })
-  )
+  )).filter(item => !!item)
 
   const tokenData = (await Promise.all(
     submissions.map(async ({ ID, decimals, exchangeAddress }) => ({
