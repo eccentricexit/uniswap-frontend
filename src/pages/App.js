@@ -52,10 +52,14 @@ const SocialLinksWrapper = styled.div`
 const SocialLink = styled.a`
   margin: 10px;
   color: white;
+  :visited {
+    color: white;
+  }
 `
 
 const KlerosLink = styled.a`
   margin-left: 20px;
+  color: white;
   :visited {
     color: white;
   }
