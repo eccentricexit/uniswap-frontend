@@ -15,6 +15,7 @@ const ADDRESS = 'address'
 const MISSING_ERC20_BADGE = 'missingERC20Badge'
 
 const UPDATE = 'UPDATE'
+const SET_FETCHING = 'SET_FETCHING'
 
 const ETH = {
   ETH: {
@@ -60,6 +61,12 @@ function reducer(state, { type, payload }) {
         }
       }
     }
+    case SET_FETCHING: {
+      return {
+        ...state,
+        isFetching: payload
+      }
+    }
     default: {
       throw Error(`Unexpected action type in TokensContext reducer: '${type}'.`)
     }
@@ -88,10 +95,17 @@ export default function Provider({ children }) {
     []
   )
 
+  const setFetching = isFetching =>
+    dispatch({
+      type: SET_FETCHING,
+      payload: isFetching
+    })
+
   const { library, networkId } = useWeb3Context()
 
   useEffect(() => {
     const fetchFromT2CR = async () => {
+      setFetching(true)
       if (library) {
         const tokens = (await getTokensWithBadge(library, networkId)).map(
           token => ({
@@ -116,6 +130,7 @@ export default function Provider({ children }) {
             token[EXCHANGE_ADDRESS]
           )
         })
+        setFetching(false)
       }
     }
     fetchFromT2CR()
@@ -126,6 +141,11 @@ export default function Provider({ children }) {
       {children}
     </TokensContext.Provider>
   )
+}
+
+export function useFetchingTokens() {
+  const [state] = useTokensContext()
+  return state.isFetching
 }
 
 export function useTokenDetails(tokenAddress) {

@@ -12,11 +12,13 @@ import { BorderlessInput } from '../../theme'
 import { useTokenContract } from '../../hooks'
 import { isAddress, calculateGasMargin } from '../../utils'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
+import { Spinner } from '../../theme'
+import Circle from '../../assets/images/circle.svg'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
 import SearchIcon from '../../assets/images/magnifying-glass.svg'
 import { useTransactionAdder, usePendingApproval } from '../../contexts/Transactions'
-import { useTokenDetails, useAllTokenDetails } from '../../contexts/Tokens'
+import { useTokenDetails, useAllTokenDetails, useFetchingTokens } from '../../contexts/Tokens'
 
 const GAS_MARGIN = ethers.utils.bigNumberify(1000)
 
@@ -209,6 +211,10 @@ const TokenModalRowWarning = styled.div`
 `
 
 const StyledTokenName = styled.span`
+  margin: 0 0.25rem 0 0.25rem;
+`
+
+const SpinnerWrapper = styled(Spinner)`
   margin: 0 0.25rem 0 0.25rem;
 `
 
@@ -414,13 +420,15 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
     })
   }, [tokenList, searchQuery])
 
+  const isFetching = useFetchingTokens()
+
   function _onTokenSelect(address) {
     setSearchQuery('')
     onTokenSelect(address)
     onDismiss()
   }
 
-  function renderTokenList() {
+  function renderTokenList(isFetching) {
     if (isAddress(searchQuery) && exchangeAddress === undefined) {
       return <TokenModalInfo>Searching for Exchange...</TokenModalInfo>
     }
@@ -439,6 +447,13 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
     if (!filteredTokenList.length) {
       return <TokenModalInfo>{t('noExchange')}</TokenModalInfo>
     }
+
+    if (isFetching)
+      return (
+        <TokenModalInfo>
+          <SpinnerWrapper src={Circle} alt="loader" />
+        </TokenModalInfo>
+      )
 
     return filteredTokenList.map(({ address, symbol, name, symbolMultihash, missingERC20Badge, exchangeAddress }) => {
       return (
@@ -491,7 +506,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
           <StyledBorderlessInput ref={inputRef} type="text" placeholder={t('searchOrPaste')} onChange={onInput} />
           <img src={SearchIcon} alt="search" />
         </SearchContainer>
-        <TokenList>{renderTokenList()}</TokenList>
+        <TokenList>{renderTokenList(isFetching)}</TokenList>
       </TokenModal>
     </Modal>
   )
