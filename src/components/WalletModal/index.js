@@ -151,23 +151,6 @@ const Web3StatusConnect = styled(Web3StatusGeneric)`
   }
 `
 
-// function getErrorMessage(event) {
-//   switch (event.code) {
-//     case InjectedConnector.errorCodes.ETHEREUM_ACCESS_DENIED: {
-//       return 'Permission Required'
-//     }
-//     case InjectedConnector.errorCodes.UNLOCK_REQUIRED: {
-//       return 'Account Unlock Required'
-//     }
-//     case InjectedConnector.errorCodes.NO_WEB3: {
-//       return 'Not a Web3 Browser'
-//     }
-//     default: {
-//       return 'Connection Error'
-//     }
-//   }
-// }
-
 export default function WalletModal({
   isOpen,
   error,
@@ -204,7 +187,7 @@ export default function WalletModal({
   }
 
   function getWalletDisplay() {
-    if (connectorName === 'Network' && (window.ethereum || window.web3))
+    if (connectorName === 'Network' && (window.ethereum || window.web3) && !error)
       return (
         <UpperSection>
           <h4>Permission required</h4>
