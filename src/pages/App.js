@@ -1,9 +1,6 @@
 import React, { Suspense, lazy } from 'react'
 import styled from 'styled-components'
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTelegram, faGithub, faTwitter } from '@fortawesome/free-brands-svg-icons'
-import { faBullhorn } from '@fortawesome/free-solid-svg-icons'
 import { toast } from 'react-toastify'
 
 import Web3ReactManager from '../components/Web3ReactManager'
@@ -74,7 +71,7 @@ export default function App() {
               </BrowserRouter>
             </Web3ReactManager>
           </Body>
-        </BodyWrapper>       
+        </BodyWrapper>
       </Suspense>
     </>
   )
