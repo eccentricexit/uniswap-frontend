@@ -4,16 +4,21 @@ import { useTranslation } from 'react-i18next'
 import { useWeb3Context } from 'web3-react'
 import { ethers } from 'ethers'
 import styled from 'styled-components'
-import { getTokenReserves, getMarketDetails, formatSignificant } from '@uniswap/sdk'
 
-import { Button, Spinner } from '../../theme'
-import Circle from '../../assets/images/circle.svg'
+import { Button } from '../../theme'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import NewContextualInfo from '../../components/ContextualInfoNew'
 import OversizedPanel from '../../components/OversizedPanel'
 import ArrowDownBlue from '../../assets/images/arrow-down-blue.svg'
 import ArrowDownGrey from '../../assets/images/arrow-down-grey.svg'
-import { amountFormatter, calculateGasMargin } from '../../utils'
+import {
+  amountFormatter,
+  calculateGasMargin,
+  computeMarginalPrice,
+  computeRelativeMarginalPrice,
+  calculateEtherTokenOutputFromInput,
+  calculateEtherTokenInputFromOutput
+} from '../../utils'
 import { useExchangeContract } from '../../hooks'
 import { useTokenDetails } from '../../contexts/Tokens'
 import { useTransactionAdder } from '../../contexts/Transactions'
@@ -84,10 +89,6 @@ const Flex = styled.div`
   }
 `
 
-const SpinnerWrapper = styled(Spinner)`
-  margin: 0 0.25rem 0 0.25rem;
-`
-
 function calculateSlippageBounds(value, token = false) {
   if (value) {
     const offset = value.mul(token ? TOKEN_ALLOWED_SLIPPAGE : ALLOWED_SLIPPAGE).div(ethers.utils.bigNumberify(10000))
@@ -112,21 +113,6 @@ function getSwapType(inputCurrency, outputCurrency) {
   } else {
     return TOKEN_TO_TOKEN
   }
-}
-
-// this mocks the getInputPrice function, and calculates the required output
-function calculateEtherTokenOutputFromInput(inputAmount, inputReserve, outputReserve) {
-  const inputAmountWithFee = inputAmount.mul(ethers.utils.bigNumberify(997))
-  const numerator = inputAmountWithFee.mul(outputReserve)
-  const denominator = inputReserve.mul(ethers.utils.bigNumberify(1000)).add(inputAmountWithFee)
-  return numerator.div(denominator)
-}
-
-// this mocks the getOutputPrice function, and calculates the required input
-function calculateEtherTokenInputFromOutput(outputAmount, inputReserve, outputReserve) {
-  const numerator = inputReserve.mul(outputAmount).mul(ethers.utils.bigNumberify(1000))
-  const denominator = outputReserve.sub(outputAmount).mul(ethers.utils.bigNumberify(997))
-  return numerator.div(denominator).add(ethers.constants.One)
 }
 
 const initialSwapState = {
@@ -365,6 +351,8 @@ export default function Swap() {
 
   const [tokenReservesInput, setTokenReservesInput] = useState()
   const [tokenReservesOutput, setTokenReservesOutput] = useState()
+  const [reserveETHInput, setReserveETHInput] = useState()
+  const [reserveETHOutput, setReserveETHOutput] = useState()
 
   // calculate dependent value
   useEffect(() => {
@@ -373,18 +361,8 @@ export default function Swap() {
     if (swapType === ETH_TO_TOKEN) {
       const reserveETH = outputReserveETH
       const reserveToken = outputReserveToken
-      dispatchSwapState({
-        type: 'UPDATING_RATE',
-        payload: true
-      })
-      getTokenReserves(outputCurrency).then(reserves => {
-        setTokenReservesOutput(reserves)
-        setTokenReservesInput(null)
-        dispatchSwapState({
-          type: 'UPDATING_RATE',
-          payload: false
-        })
-      })
+      setTokenReservesOutput(reserveToken)
+      setTokenReservesInput(reserveETH)
 
       if (amount && reserveETH && reserveToken) {
         try {
@@ -408,18 +386,8 @@ export default function Swap() {
     } else if (swapType === TOKEN_TO_ETH) {
       const reserveETH = inputReserveETH
       const reserveToken = inputReserveToken
-      dispatchSwapState({
-        type: 'UPDATING_RATE',
-        payload: true
-      })
-      getTokenReserves(inputCurrency).then(reserves => {
-        setTokenReservesOutput(reserves)
-        setTokenReservesInput(null)
-        dispatchSwapState({
-          type: 'UPDATING_RATE',
-          payload: false
-        })
-      })
+      setTokenReservesOutput(reserveETH)
+      setTokenReservesInput(reserveToken)
 
       if (amount && reserveETH && reserveToken) {
         try {
@@ -447,22 +415,10 @@ export default function Swap() {
       const reserveETHSecond = outputReserveETH
       const reserveTokenSecond = outputReserveToken
 
-      dispatchSwapState({
-        type: 'UPDATING_RATE',
-        payload: true
-      })
-      getTokenReserves(inputCurrency)
-        .then(reserves => {
-          setTokenReservesInput(reserves)
-          return getTokenReserves(outputCurrency)
-        })
-        .then(reserves => {
-          setTokenReservesOutput(reserves)
-          dispatchSwapState({
-            type: 'UPDATING_RATE',
-            payload: false
-          })
-        })
+      setTokenReservesInput(inputReserveToken)
+      setReserveETHInput(inputReserveETH)
+      setTokenReservesOutput(outputReserveToken)
+      setReserveETHOutput(outputReserveETH)
 
       if (amount && reserveETHFirst && reserveTokenFirst && reserveETHSecond && reserveTokenSecond) {
         try {
@@ -495,7 +451,8 @@ export default function Swap() {
             }
             dispatchSwapState({ type: 'UPDATE_DEPENDENT', payload: calculatedDependentValue })
           }
-        } catch {
+        } catch (err) {
+          console.error(err)
           setIndependentError(t('insufficientLiquidity'))
         }
         return () => {
@@ -515,11 +472,6 @@ export default function Swap() {
     inputCurrency,
     outputCurrency
   ])
-
-  const marketDetails =
-    tokenReservesInput && tokenReservesOutput
-      ? getMarketDetails(tokenReservesInput, tokenReservesOutput)
-      : tokenReservesOutput && getMarketDetails(undefined, tokenReservesOutput)
 
   const [inverted, setInverted] = useState(false)
   const exchangeRate = getExchangeRate(inputValueParsed, inputDecimals, outputValueParsed, outputDecimals)
@@ -558,6 +510,8 @@ export default function Swap() {
     return `Balance: ${value}`
   }
 
+  const [invertedMarginalPrice, setInvertedMarginalPrice] = useState(false)
+
   function renderTransactionDetails() {
     ReactGA.event({
       category: 'TransactionDetail',
@@ -566,20 +520,34 @@ export default function Swap() {
 
     const b = text => <BlueSpan>{text}</BlueSpan>
 
-    const MarginalPriceDisplay = swapState.updatingRate ? (
-      <SpinnerWrapper src={Circle} />
-    ) : swapType === ETH_TO_TOKEN || swapType === TOKEN_TO_TOKEN ? (
-      <span>
-        {marketDetails
-          ? `1 ${outputSymbol} = ${formatSignificant(1 / marketDetails.marketRate.rate)} ${inputSymbol}`
-          : ' - '}
-      </span>
-    ) : (
-      <span>
-        {marketDetails
-          ? `1 ${inputSymbol} = ${formatSignificant(1 / marketDetails.marketRate.rate)} ${outputSymbol}`
-          : ' - '}
-      </span>
+    let marginalPriceDisplay = ' - '
+
+    if (tokenReservesInput && tokenReservesOutput && inputValueParsed && outputValueParsed)
+      if (swapType === ETH_TO_TOKEN || swapType === TOKEN_TO_ETH) {
+        const marginalPrice = computeMarginalPrice(tokenReservesInput, tokenReservesOutput, inputValueParsed)
+        if (swapType === ETH_TO_TOKEN)
+          marginalPriceDisplay = `1 ${invertedMarginalPrice ? inputSymbol : outputSymbol} = ${
+            invertedMarginalPrice ? marginalPrice.toFixed(5) : (1 / marginalPrice).toFixed(5)
+          } ${invertedMarginalPrice ? outputSymbol : inputSymbol}`
+        else
+          marginalPriceDisplay = `1 ${invertedMarginalPrice ? outputSymbol : inputSymbol} = ${
+            invertedMarginalPrice ? (1 / marginalPrice).toFixed(5) : marginalPrice.toFixed(5)
+          } ${invertedMarginalPrice ? inputSymbol : outputSymbol}`
+      } else if (reserveETHOutput && reserveETHInput) {
+        const marginalPrice = computeRelativeMarginalPrice(
+          inputValueParsed,
+          tokenReservesInput,
+          reserveETHInput,
+          tokenReservesOutput,
+          reserveETHOutput
+        )
+        marginalPriceDisplay = `1 ${invertedMarginalPrice ? inputSymbol : outputSymbol} = ${
+          invertedMarginalPrice ? marginalPrice.toFixed(5) : (1 / marginalPrice).toFixed(5)
+        } ${invertedMarginalPrice ? outputSymbol : inputSymbol}`
+      }
+
+    marginalPriceDisplay = (
+      <span onClick={() => setInvertedMarginalPrice(!invertedMarginalPrice)}>{marginalPriceDisplay}</span>
     )
 
     if (independentField === INPUT) {
@@ -617,7 +585,7 @@ export default function Swap() {
           <LastSummaryText>
             {t('marginalPrice')}
             {': '}
-            {b(MarginalPriceDisplay)}.
+            {b(marginalPriceDisplay)}.
           </LastSummaryText>
         </div>
       )
@@ -652,7 +620,7 @@ export default function Swap() {
           <LastSummaryText>
             {t('marginalPrice')}
             {': '}
-            {b(MarginalPriceDisplay)}.
+            {b(marginalPriceDisplay)}.
           </LastSummaryText>
         </div>
       )

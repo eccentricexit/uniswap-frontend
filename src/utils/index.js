@@ -287,3 +287,67 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
     }
   }
 }
+
+const PRECISION_MULTIPLIER = 100000
+
+export function computeMarginalPrice(inputReserve, outputReserve, deltaX) {
+  if (!inputReserve || !outputReserve || !deltaX) return ethers.constants.Zero
+
+  // marginalPrice = (x * y * gamma)/(x + deltaX * gamma)^2
+  //
+  // where:
+  //
+  // x = tokens being sold in reserve before the trade = inputReserve
+  // y = tokens being bought in reserve before the trade = outputReserve
+  // gamma = 1 - fee (expressed as a fraction in [0,1])
+  // deltaX = the amount of to  kens being sold
+  // marginalPrice = the price of the last unit bought
+
+  const UNISWAP_FEE = 0.003
+  const gamma = ethers.utils
+    .bigNumberify(PRECISION_MULTIPLIER)
+    .sub(ethers.utils.bigNumberify(UNISWAP_FEE * PRECISION_MULTIPLIER))
+  const numerator = inputReserve
+    .mul(outputReserve)
+    .mul(gamma)
+    .div(ethers.utils.bigNumberify(PRECISION_MULTIPLIER))
+
+  const denominator = inputReserve
+    .add(deltaX.mul(gamma).div(ethers.utils.bigNumberify(PRECISION_MULTIPLIER)))
+    .pow(ethers.utils.bigNumberify(2))
+
+  return (
+    numerator
+      .mul(ethers.utils.bigNumberify(PRECISION_MULTIPLIER))
+      .div(denominator)
+      .toString() / PRECISION_MULTIPLIER
+  )
+}
+
+// this mocks the getInputPrice function, and calculates the required output
+export function calculateEtherTokenOutputFromInput(inputAmount, inputReserve, outputReserve) {
+  const inputAmountWithFee = inputAmount.mul(ethers.utils.bigNumberify(997))
+  const numerator = inputAmountWithFee.mul(outputReserve)
+  const denominator = inputReserve.mul(ethers.utils.bigNumberify(1000)).add(inputAmountWithFee)
+  return numerator.div(denominator)
+}
+
+// this mocks the getOutputPrice function, and calculates the required input
+export function calculateEtherTokenInputFromOutput(outputAmount, inputReserve, outputReserve) {
+  const numerator = inputReserve.mul(outputAmount).mul(ethers.utils.bigNumberify(1000))
+  const denominator = outputReserve.sub(outputAmount).mul(ethers.utils.bigNumberify(997))
+  return numerator.div(denominator).add(ethers.constants.One)
+}
+
+export function computeRelativeMarginalPrice(
+  inputTokenAmount,
+  reserveTokenInput,
+  reserveETHInput,
+  reserveTokenOutput,
+  reserveETHOutput
+) {
+  const ethAmount = calculateEtherTokenOutputFromInput(inputTokenAmount, reserveTokenInput, reserveETHInput)
+  const tokenInputMarginalPrice = computeMarginalPrice(reserveTokenInput, reserveETHInput, inputTokenAmount)
+  const tokenOutputMarginalPrice = 1 / computeMarginalPrice(reserveETHOutput, reserveTokenOutput, ethAmount).toString()
+  return tokenInputMarginalPrice.toString() / tokenOutputMarginalPrice
+}

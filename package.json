@@ -11,7 +11,6 @@
     "@fortawesome/react-fontawesome": "^0.1.4",
     "@reach/dialog": "^0.2.8",
     "@reach/tooltip": "^0.2.0",
-    "@uniswap/sdk": "^1.0.0-beta.1",
     "copy-to-clipboard": "^3.2.0",
     "escape-string-regexp": "^2.0.0",
     "ethers": "^4.0.28",
