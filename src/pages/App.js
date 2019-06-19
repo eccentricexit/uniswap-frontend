@@ -36,34 +36,6 @@ const Body = styled.div`
   width: 35rem;
   margin: 0.1rem 1.25rem;
 `
-const FooterWrapper = styled.div`
-  width: 100%;
-  height: 50px;
-  background-color: ${({ theme }) => theme.klerosPurple}
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`
-
-const SocialLinksWrapper = styled.div`
-  margin-right: 20px;
-`
-const SocialLink = styled.a`
-  margin: 10px;
-  color: white;
-  :visited {
-    color: white;
-  }
-`
-
-const KlerosLink = styled.a`
-  margin-left: 20px;
-  color: white;
-  :visited {
-    color: white;
-  }
-`
 
 toast.configure({
   autoClose: false,
@@ -102,24 +74,7 @@ export default function App() {
               </BrowserRouter>
             </Web3ReactManager>
           </Body>
-        </BodyWrapper>
-        <FooterWrapper>
-          <KlerosLink href="https://kleros.io">Learn more</KlerosLink>
-          <SocialLinksWrapper>
-            <SocialLink href="https://t.me/kleros">
-              <FontAwesomeIcon size="lg" icon={faTelegram} />
-            </SocialLink>
-            <SocialLink href="https://github.com/kleros">
-              <FontAwesomeIcon size="lg" icon={faGithub} />
-            </SocialLink>
-            <SocialLink href="https://blog.kleros.io">
-              <FontAwesomeIcon size="lg" icon={faBullhorn} />
-            </SocialLink>
-            <SocialLink href="https://twitter.com/kleros_io">
-              <FontAwesomeIcon size="lg" icon={faTwitter} />
-            </SocialLink>
-          </SocialLinksWrapper>
-        </FooterWrapper>
+        </BodyWrapper>       
       </Suspense>
     </>
   )
