@@ -527,11 +527,11 @@ export default function Swap() {
         const marginalPrice = computeMarginalPrice(tokenReservesInput, tokenReservesOutput, inputValueParsed)
         if (swapType === ETH_TO_TOKEN)
           marginalPriceDisplay = `1 ${invertedMarginalPrice ? inputSymbol : outputSymbol} = ${
-            invertedMarginalPrice ? marginalPrice.toFixed(5) : (1 / marginalPrice).toFixed(5)
+            invertedMarginalPrice ? marginalPrice.toFixed(7) : (1 / marginalPrice).toFixed(7)
           } ${invertedMarginalPrice ? outputSymbol : inputSymbol}`
         else
           marginalPriceDisplay = `1 ${invertedMarginalPrice ? outputSymbol : inputSymbol} = ${
-            invertedMarginalPrice ? (1 / marginalPrice).toFixed(5) : marginalPrice.toFixed(5)
+            invertedMarginalPrice ? (1 / marginalPrice).toFixed(7) : marginalPrice.toFixed(7)
           } ${invertedMarginalPrice ? inputSymbol : outputSymbol}`
       } else if (reserveETHOutput && reserveETHInput) {
         const marginalPrice = computeRelativeMarginalPrice(
@@ -542,7 +542,7 @@ export default function Swap() {
           reserveETHOutput
         )
         marginalPriceDisplay = `1 ${invertedMarginalPrice ? inputSymbol : outputSymbol} = ${
-          invertedMarginalPrice ? marginalPrice.toFixed(5) : (1 / marginalPrice).toFixed(5)
+          invertedMarginalPrice ? marginalPrice.toFixed(7) : (1 / marginalPrice).toFixed(7)
         } ${invertedMarginalPrice ? outputSymbol : inputSymbol}`
       }
 
