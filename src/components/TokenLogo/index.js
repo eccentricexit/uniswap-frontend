@@ -9,6 +9,7 @@ const Image = styled.img`
   width: ${({ size }) => size};
   height: ${({ size }) => size};
   border-radius: 1rem;
+  object-fit: contain;
 `
 
 const Emoji = styled.span`
