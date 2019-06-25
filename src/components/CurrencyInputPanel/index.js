@@ -248,6 +248,8 @@ export default function CurrencyInputPanel({
 
   const allTokens = useAllTokenDetails()
 
+  const isFetching = useFetchingTokens()
+
   function renderUnlockButton() {
     if (disableUnlock || !showUnlock || selectedTokenAddress === 'ETH' || !selectedTokenAddress) {
       return null
@@ -279,7 +281,7 @@ export default function CurrencyInputPanel({
     }
   }
 
-  function _renderInput() {
+  function _renderInput(isFetching) {
     if (typeof renderInput === 'function') {
       return renderInput()
     }
@@ -316,12 +318,12 @@ export default function CurrencyInputPanel({
             {selectedTokenAddress ? (
               <TokenLogo
                 address={selectedTokenAddress}
-                symbolMultihash={allTokens[selectedTokenAddress].symbolMultihash}
+                symbolMultihash={allTokens[selectedTokenAddress] && allTokens[selectedTokenAddress].symbolMultihash}
               />
             ) : null}
             {
               <StyledTokenName>
-                {(allTokens[selectedTokenAddress] && allTokens[selectedTokenAddress].symbol) || t('selectToken')}
+                {allTokens[selectedTokenAddress] && allTokens[selectedTokenAddress].symbol ? allTokens[selectedTokenAddress].symbol : !isFetching || !selectedTokenAddress ? t('selectToken') : '---' }
               </StyledTokenName>
             }
             {!disableTokenSelect && <StyledDropDown selected={!!selectedTokenAddress} />}
@@ -361,7 +363,7 @@ export default function CurrencyInputPanel({
             </Tooltip>
           </ErrorSpan>
         </LabelRow>
-        {_renderInput()}
+        {_renderInput(isFetching)}
       </Container>
       {!disableTokenSelect && (
         <CurrencySelectModal

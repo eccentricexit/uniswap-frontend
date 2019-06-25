@@ -6,6 +6,7 @@ import { toast } from 'react-toastify'
 import Web3ReactManager from '../components/Web3ReactManager'
 import Header from '../components/Header'
 import NavigationTabs from '../components/NavigationTabs'
+import { isAddress } from '../utils'
 
 import 'react-toastify/dist/ReactToastify.css'
 import './toast.css'
@@ -55,7 +56,31 @@ export default function App() {
                 <Suspense fallback={null}>
                   <Switch>
                     <Route exact strict path="/swap" component={Swap} />
+                    <Route
+                      exact
+                      strict
+                      path="/swap/:tokenAddress?"
+                      render={({ match }) => {
+                        if (isAddress(match.params.tokenAddress)) {
+                          return <Swap initialCurrency={isAddress(match.params.tokenAddress)} />
+                        } else {
+                          return <Redirect to={{ pathname: '/swap' }} />
+                        }
+                      }}
+                    />
                     <Route exact strict path="/send" component={Send} />
+                    <Route
+                      exact
+                      strict
+                      path="/send/:tokenAddress?"
+                      render={({ match }) => {
+                        if (isAddress(match.params.tokenAddress)) {
+                          return <Send initialCurrency={isAddress(match.params.tokenAddress)} />
+                        } else {
+                          return <Redirect to={{ pathname: '/send' }} />
+                        }
+                      }}
+                    />
                     <Route
                       path={[
                         '/add-liquidity',

@@ -26,7 +26,7 @@ export default function TokenLogo({ address, size = '1rem', symbolMultihash, ...
   let path = ''
   if (address === 'ETH') {
     return <StyledEthereumLogo size={size} />
-  } else if (!error && !BAD_IMAGES[address]) {
+  } else if (!error && !BAD_IMAGES[address] && symbolMultihash) {
     path = `${process.env.REACT_APP_IPFS_GATEWAY}/${symbolMultihash}`
   } else {
     return (

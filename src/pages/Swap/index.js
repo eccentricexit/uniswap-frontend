@@ -115,12 +115,14 @@ function getSwapType(inputCurrency, outputCurrency) {
   }
 }
 
-const initialSwapState = {
-  independentValue: '', // this is a user input
-  dependentValue: '', // this is a calculated number
-  independentField: INPUT,
-  inputCurrency: 'ETH',
-  outputCurrency: ''
+function getInitialSwapState(outputCurrency) {
+  return {
+    independentValue: '', // this is a user input
+    dependentValue: '', // this is a calculated number
+    independentField: INPUT,
+    inputCurrency: 'ETH',
+    outputCurrency: outputCurrency ? outputCurrency : ''
+  }
 }
 
 function swapStateReducer(state, action) {
@@ -179,7 +181,7 @@ function swapStateReducer(state, action) {
       }
     }
     default: {
-      return initialSwapState
+      return getInitialSwapState()
     }
   }
 }
@@ -235,7 +237,7 @@ function getMarketRate(
   }
 }
 
-export default function Swap() {
+export default function Swap({ initialCurrency }) {
   const { t } = useTranslation()
   const { account } = useWeb3Context()
 
@@ -247,7 +249,7 @@ export default function Swap() {
   }, [])
 
   // core swap state
-  const [swapState, dispatchSwapState] = useReducer(swapStateReducer, initialSwapState)
+  const [swapState, dispatchSwapState] = useReducer(swapStateReducer, initialCurrency, getInitialSwapState)
   const { independentValue, dependentValue, independentField, inputCurrency, outputCurrency } = swapState
 
   // get swap type from the currency types
