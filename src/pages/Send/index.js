@@ -293,7 +293,7 @@ export default function Swap() {
 
   // declare/get parsed and formatted versions of input/output values
   const [independentValueParsed, setIndependentValueParsed] = useState()
-  const dependentValueFormatted = !!(dependentValue && dependentDecimals)
+  const dependentValueFormatted = !!(dependentValue && (dependentDecimals || dependentDecimals === 0))
     ? amountFormatter(dependentValue, dependentDecimals, Math.min(4, dependentDecimals), false)
     : ''
   const inputValueParsed = independentField === INPUT ? independentValueParsed : dependentValue
@@ -304,7 +304,7 @@ export default function Swap() {
   // validate + parse independent value
   const [independentError, setIndependentError] = useState()
   useEffect(() => {
-    if (independentValue && independentDecimals) {
+    if (independentValue && (independentDecimals || independentDecimals === 0)) {
       try {
         const parsedValue = ethers.utils.parseUnits(independentValue, independentDecimals)
 
