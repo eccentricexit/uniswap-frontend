@@ -1,6 +1,6 @@
 import _arbitrableAddressList from '../constants/abis/arbitrable-address-list.json'
-import _arbitrableTokenList from '../constants/abis/arbitrable-token-list.json'
-import { T2CR_ADDRESSES, ERC20_BADGE_ADDRESSES } from '../constants/index'
+import _tokensView from '../constants/abis/tokens-view.json'
+import { T2CR_ADDRESSES, ERC20_BADGE_ADDRESSES, TOKENS_VIEW_ADDRESSES } from '../constants/index'
 import { getContract, getTokenDecimals, getTokenExchangeAddressFromFactory } from './index'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -9,65 +9,50 @@ const filter = [false, true, false, true, false, true, false, false]
 
 export default async function getTokensWithBadge(library, networkId) {
   try {
-    const arbitrableTokenList = getContract(T2CR_ADDRESSES[networkId], _arbitrableTokenList, library, ZERO_ADDRESS)
     const arbitrableAddressList = getContract(
       ERC20_BADGE_ADDRESSES[networkId],
       _arbitrableAddressList,
       library,
       ZERO_ADDRESS
     )
-
+    const tokensView = getContract(TOKENS_VIEW_ADDRESSES[networkId], _tokensView, library, ZERO_ADDRESS)
     const addressesWithBadge = (await arbitrableAddressList.queryAddresses(ZERO_ADDRESS, 100, filter, true))[0].filter(
       address => address !== ZERO_ADDRESS
     )
+    const tokenIDs = (await tokensView.getTokensIDsForAddresses(T2CR_ADDRESSES[networkId], addressesWithBadge)).filter(tokenID => tokenID !== ZERO_ID)
+    const tokensInfo = (await tokensView.getTokens(T2CR_ADDRESSES[networkId], tokenIDs))
+      .filter(tokenInfo => tokenInfo[3] !== '0x0000000000000000000000000000000000000000')
+      .reduce((acc, curr) => ({
+        ...acc,
+        [curr[3]]: curr
+      }), {})
 
-    const submissions = (await Promise.all(
-      addressesWithBadge.map(async address => {
-        const tokenIDsForAddr = (await arbitrableTokenList.queryTokens(ZERO_ID, 100, filter, true, address))[0].filter(
-          ID => ID !== ZERO_ID
-        )
-
-        let decimals
-        let exchangeAddress
+    await Promise.all(
+      Object.keys(tokensInfo).map(async address => {
         try {
-          decimals = await getTokenDecimals(address, library)
-          exchangeAddress = await getTokenExchangeAddressFromFactory(address, networkId, library)
+          tokensInfo[address].decimals = await getTokenDecimals(address, library)
+          tokensInfo[address].exchangeAddress = await getTokenExchangeAddressFromFactory(address, networkId, library)
+          return null
         } catch (err) {
           console.warn('Could not fetch token information for token of address ' + address)
-          return null
-        }
-
-        if (tokenIDsForAddr.length === 0) return null
-        return {
-          ID: tokenIDsForAddr[0],
-          decimals,
-          exchangeAddress
         }
       })
-    )).filter(item => !!item)
+    )
+    Object.keys(tokensInfo).forEach(address => {
+      if (!tokensInfo[address].decimals || !tokensInfo[address].exchangeAddress)
+        delete tokensInfo[address]
+    })
 
-    const tokenData = (await Promise.all(
-      submissions.map(async ({ ID, decimals, exchangeAddress }) => ({
-        ...(await arbitrableTokenList.getTokenInfo(ID)),
-        decimals,
-        exchangeAddress
-      }))
-    )).reduce((acc, submission) => {
-      if (acc[submission.addr]) acc[submission.addr].push(submission)
-      else acc[submission.addr] = [submission]
-      return acc
-    }, {})
-
-    return Object.keys(tokenData).map(address => [
-      tokenData[address][0].ticker,
-      address,
-      tokenData[address][0].name,
-      tokenData[address][0].symbolMultihash,
-      tokenData[address][0].decimals,
-      tokenData[address][0].exchangeAddress
+    return Object.keys(tokensInfo).map(address => [
+      tokensInfo[address].ticker,
+      tokensInfo[address].addr,
+      tokensInfo[address].name,
+      tokensInfo[address].symbolMultihash,
+      tokensInfo[address].decimals,
+      tokensInfo[address].exchangeAddress
     ])
   } catch (err) {
-    if (err.slice(0, 14) === 'call exception') return getTokensWithBadge(library, networkId)
+    if (err.slice && err.slice(0, 14) === 'call exception') return getTokensWithBadge(library, networkId)
     // This is an issue with infura. Simply try again.
     else {
       console.error(err)
