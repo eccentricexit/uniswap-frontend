@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
 import { useWeb3Context } from 'web3-react'
 import { ethers } from 'ethers'
-
 import { isAddress, getTokenDecimals, getTokenExchangeAddressFromFactory, safeAccess, getTokenInfo } from '../utils'
-
 import getTokensWithBadge from '../utils/get-tokens-with-badge'
+import decimalsDictionary from '../utils/decimals-dictionary'
 
 const NAME = 'name'
 const SYMBOL = 'symbol'
@@ -13,6 +12,7 @@ const EXCHANGE_ADDRESS = 'exchangeAddress'
 const SYMBOL_MULTIHASH = 'symbolMultihash'
 const ADDRESS = 'address'
 const MISSING_ERC20_BADGE = 'missingERC20Badge'
+const MISSING_DECIMALS = 'missingDecimals'
 
 const UPDATE = 'UPDATE'
 const SET_FETCHING = 'SET_FETCHING'
@@ -23,7 +23,8 @@ const ETH = {
     [SYMBOL]: 'ETH',
     [DECIMALS]: 18,
     [EXCHANGE_ADDRESS]: null,
-    [MISSING_ERC20_BADGE]: false
+    [MISSING_ERC20_BADGE]: false,
+    [MISSING_DECIMALS]: false
   }
 }
 
@@ -44,7 +45,8 @@ function reducer(state, { type, payload }) {
         decimals,
         exchangeAddress,
         symbolMultihash,
-        missingERC20Badge
+        missingERC20Badge,
+        missingDecimals
       } = payload
       return {
         ...state,
@@ -56,7 +58,8 @@ function reducer(state, { type, payload }) {
             [SYMBOL_MULTIHASH]: symbolMultihash,
             [DECIMALS]: decimals,
             [EXCHANGE_ADDRESS]: exchangeAddress,
-            [MISSING_ERC20_BADGE]: missingERC20Badge
+            [MISSING_ERC20_BADGE]: missingERC20Badge,
+            [MISSING_DECIMALS]: missingDecimals
           }
         }
       }
@@ -77,7 +80,7 @@ export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, { 1: {} })
 
   const update = useCallback(
-    (networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress, missingERC20Badge) => {
+    (networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress, missingERC20Badge, missingDecimals) => {
       dispatch({
         type: UPDATE,
         payload: {
@@ -88,7 +91,8 @@ export default function Provider({ children }) {
           symbolMultihash,
           decimals,
           exchangeAddress,
-          missingERC20Badge
+          missingERC20Badge,
+          missingDecimals
         }
       })
     },
@@ -113,7 +117,6 @@ export default function Provider({ children }) {
             [ADDRESS]: token[1],
             [NAME]: token[2],
             [SYMBOL_MULTIHASH]: token[3],
-            [DECIMALS]: token[4],
             [EXCHANGE_ADDRESS]: token[5],
             [MISSING_ERC20_BADGE]: false
           }),
@@ -126,7 +129,6 @@ export default function Provider({ children }) {
             token[NAME],
             token[SYMBOL],
             token[SYMBOL_MULTIHASH],
-            token[DECIMALS],
             token[EXCHANGE_ADDRESS]
           )
         })
@@ -158,7 +160,8 @@ export function useTokenDetails(tokenAddress) {
     [SYMBOL]: symbol,
     [DECIMALS]: decimals,
     [EXCHANGE_ADDRESS]: exchangeAddress,
-    [SYMBOL_MULTIHASH]: symbolMultihash
+    [SYMBOL_MULTIHASH]: symbolMultihash,
+    [MISSING_DECIMALS]: missingDecimals
   } = safeAccess(allTokensInNetwork, [tokenAddress]) || {}
 
   useEffect(() => {
@@ -170,10 +173,11 @@ export function useTokenDetails(tokenAddress) {
     ) {
       let stale = false
 
-      const decimalsPromise = getTokenDecimals(tokenAddress, library).catch(() => null)
-      const exchangeAddressPromise = getTokenExchangeAddressFromFactory(tokenAddress, networkId, library).catch(
+      const decimalsPromise = !decimals ? getTokenDecimals(tokenAddress, library).catch(() => null) : null
+      const exchangeAddressPromise = !exchangeAddress ? getTokenExchangeAddressFromFactory(tokenAddress, networkId, library).catch(
         () => null
-      )
+      ) : null
+
       let tokenInfoPromise
       if (!name || !symbol || !symbolMultihash) {
         tokenInfoPromise = getTokenInfo(tokenAddress, library, networkId)
@@ -183,10 +187,22 @@ export function useTokenDetails(tokenAddress) {
           let tokenInfoName
           let tokenInfoTicker
           let tokenInfoSymbolMultihash
+          let missingDecimals = false
           if (resolvedTokenInfo) {
             tokenInfoName = resolvedTokenInfo.name
             tokenInfoTicker = resolvedTokenInfo.ticker
             tokenInfoSymbolMultihash = resolvedTokenInfo.symbolMultihash
+          }
+
+          if (!resolvedDecimals) {
+            // The token contract does not have the `decimals()` function.
+            // We check against a hardcoded dictionary in this case and warn the user.
+            resolvedDecimals = decimalsDictionary[tokenAddress]
+          }
+          if (!resolvedDecimals) {
+            // If we do not have the number of decimals in the token dictionary either,
+            // we mark this token as missing decimals prevent the user from trading it.
+            missingDecimals = true
           }
 
           if (!stale) {
@@ -198,7 +214,8 @@ export function useTokenDetails(tokenAddress) {
               symbolMultihash || tokenInfoSymbolMultihash || '',
               resolvedDecimals,
               resolvedExchangeAddress,
-              !!resolvedTokenInfo
+              !!resolvedTokenInfo,
+              missingDecimals
             )
           }
         }
@@ -208,9 +225,9 @@ export function useTokenDetails(tokenAddress) {
         stale = true
       }
     }
-  }, [tokenAddress, name, symbol, decimals, exchangeAddress, symbolMultihash, networkId, library, update])
+  }, [tokenAddress, name, symbol, decimals, exchangeAddress, symbolMultihash, networkId, missingDecimals, library, update])
 
-  return { name, symbol, decimals, exchangeAddress, symbolMultihash }
+  return { name, symbol, decimals, exchangeAddress, symbolMultihash, missingDecimals }
 }
 
 export function useAllTokenDetails(requireExchange = false) {

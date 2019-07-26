@@ -85,5 +85,6 @@
   "notInT2CR": "is not present on the T²CR",
   "missingERC20Badge": "doesn't have the ERC20 badge",
   "liquidity": "Liquidity",
-  "marginalPrice": "Marginal Price"
+  "marginalPrice": "Marginal Price",
+  "missingDecimalPlaces": "This token can't be traded on uniswap.ninja because its contract does not publish the number of decimal places."
 }

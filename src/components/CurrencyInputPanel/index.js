@@ -459,7 +459,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
       return <TokenModalInfo>{t('noExchange')}</TokenModalInfo>
     }
 
-    return filteredTokenList.map(({ address, symbol, name, symbolMultihash, missingERC20Badge, exchangeAddress }) => {
+    return filteredTokenList.map(({ address, symbol, name, symbolMultihash, missingERC20Badge, exchangeAddress, missingDecimals }) => {
       return (
         <div key={address}>
           <TokenModalRow

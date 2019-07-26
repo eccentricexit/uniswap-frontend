@@ -256,10 +256,10 @@ export default function Swap({ initialCurrency }) {
   const swapType = getSwapType(inputCurrency, outputCurrency)
 
   // get decimals and exchange addressfor each of the currency types
-  const { symbol: inputSymbol, decimals: inputDecimals, exchangeAddress: inputExchangeAddress } = useTokenDetails(
+  const { symbol: inputSymbol, decimals: inputDecimals, exchangeAddress: inputExchangeAddress, missingDecimals: missingDecimalsInput } = useTokenDetails(
     inputCurrency
   )
-  const { symbol: outputSymbol, decimals: outputDecimals, exchangeAddress: outputExchangeAddress } = useTokenDetails(
+  const { symbol: outputSymbol, decimals: outputDecimals, exchangeAddress: outputExchangeAddress, missingDecimals: missingDecimalsOutput } = useTokenDetails(
     outputCurrency
   )
 
@@ -360,26 +360,33 @@ export default function Swap({ initialCurrency }) {
   useEffect(() => {
     const amount = independentValueParsed
 
-    if (swapType === ETH_TO_TOKEN) {
+    if (missingDecimalsInput || missingDecimalsOutput) {
+      setIndependentError(t('missingDecimalPlaces'))
+      dispatchSwapState({ type: 'UPDATE_DEPENDENT', payload: '' })
+    } else if (swapType === ETH_TO_TOKEN) {
       const reserveETH = outputReserveETH
       const reserveToken = outputReserveToken
-      setTokenReservesOutput(reserveToken)
       setTokenReservesInput(reserveETH)
+      setTokenReservesOutput(reserveToken)
 
       if (amount && reserveETH && reserveToken) {
-        try {
-          const calculatedDependentValue =
-            independentField === INPUT
-              ? calculateEtherTokenOutputFromInput(amount, reserveETH, reserveToken)
-              : calculateEtherTokenInputFromOutput(amount, reserveETH, reserveToken)
-
-          if (calculatedDependentValue.lte(ethers.constants.Zero)) {
-            throw Error()
-          }
-
-          dispatchSwapState({ type: 'UPDATE_DEPENDENT', payload: calculatedDependentValue })
-        } catch {
+        if (reserveETH.eq(ethers.utils.bigNumberify(0)) || reserveToken.eq(ethers.utils.bigNumberify(0))){
           setIndependentError(t('insufficientLiquidity'))
+        } else {
+          try {
+            const calculatedDependentValue =
+              independentField === INPUT
+                ? calculateEtherTokenOutputFromInput(amount, reserveETH, reserveToken)
+                : calculateEtherTokenInputFromOutput(amount, reserveETH, reserveToken)
+
+            if (calculatedDependentValue.lte(ethers.constants.Zero)) {
+              throw Error()
+            }
+
+            dispatchSwapState({ type: 'UPDATE_DEPENDENT', payload: calculatedDependentValue })
+          } catch {
+            setIndependentError(t('insufficientLiquidity'))
+          }
         }
         return () => {
           dispatchSwapState({ type: 'UPDATE_DEPENDENT', payload: '' })
@@ -472,7 +479,9 @@ export default function Swap({ initialCurrency }) {
     independentField,
     t,
     inputCurrency,
-    outputCurrency
+    outputCurrency,
+    missingDecimalsInput,
+    missingDecimalsOutput
   ])
 
   const [inverted, setInverted] = useState(false)
@@ -505,7 +514,7 @@ export default function Swap({ initialCurrency }) {
     percentSlippage.lt(ethers.utils.parseEther('.2')) // [5% - 20%)
   const highSlippageWarning = percentSlippage && percentSlippage.gte(ethers.utils.parseEther('.2')) // [20+%
 
-  const isValid = exchangeRate && inputError === null && independentError === null
+  const isValid = exchangeRate && inputError === null && independentError === null && !missingDecimalsInput && !missingDecimalsOutput
 
   const estimatedText = `(${t('estimated')})`
   function formatBalance(value) {
@@ -524,7 +533,7 @@ export default function Swap({ initialCurrency }) {
 
     let marginalPriceDisplay = ' - '
 
-    if (tokenReservesInput && tokenReservesOutput && inputValueParsed && outputValueParsed)
+    if (tokenReservesInput && tokenReservesOutput && inputValueParsed && outputValueParsed && tokenReservesInput.gt(ethers.utils.bigNumberify('0')) && tokenReservesOutput.gt(ethers.utils.bigNumberify('0')))
       if (swapType === ETH_TO_TOKEN || swapType === TOKEN_TO_ETH) {
         const marginalPrice = computeMarginalPrice(tokenReservesInput, tokenReservesOutput, inputValueParsed)
         if (swapType === ETH_TO_TOKEN)
@@ -551,6 +560,8 @@ export default function Swap({ initialCurrency }) {
     marginalPriceDisplay = (
       <span onClick={() => setInvertedMarginalPrice(!invertedMarginalPrice)}>{marginalPriceDisplay}</span>
     )
+
+    if (!dependentDecimals || !independentDecimals) return <div>-</div>
 
     if (independentField === INPUT) {
       return (

@@ -76,5 +76,6 @@
   "notInT2CR": "отсутствует на T²CR",
   "missingERC20Badge": "не имеет значка ERC20",
   "liquidity": "ликвидности",
-  "marginalPrice": "Предельная цена"
+  "marginalPrice": "Предельная цена",
+  "missingDecimalPlaces": "Этот токен нельзя обменять на uniswap.ninja, потому что его контракт не публикует количество знаков после запятой."
 }

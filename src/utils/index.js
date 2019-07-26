@@ -288,7 +288,7 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
   }
 }
 
-const PRECISION_MULTIPLIER = 100000000
+const PRECISION_MULTIPLIER = '1000000000'
 
 export function computeMarginalPrice(inputReserve, outputReserve, deltaX) {
   if (!inputReserve || !outputReserve || !deltaX) return ethers.constants.Zero
@@ -320,6 +320,7 @@ export function computeMarginalPrice(inputReserve, outputReserve, deltaX) {
     numerator
       .mul(ethers.utils.bigNumberify(PRECISION_MULTIPLIER))
       .div(denominator)
+      .div(PRECISION_MULTIPLIER)
       .toString() / PRECISION_MULTIPLIER
   )
 }
