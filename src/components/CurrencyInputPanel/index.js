@@ -448,16 +448,16 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect }) {
       )
     }
 
-    if (!filteredTokenList.length) {
-      return <TokenModalInfo>{t('noExchange')}</TokenModalInfo>
-    }
-
     if (isFetching)
       return (
         <TokenModalInfo>
           <SpinnerWrapper src={Circle} alt="loader" />
         </TokenModalInfo>
       )
+
+    if (!filteredTokenList.length) {
+      return <TokenModalInfo>{t('noExchange')}</TokenModalInfo>
+    }
 
     return filteredTokenList.map(({ address, symbol, name, symbolMultihash, missingERC20Badge, exchangeAddress }) => {
       return (
