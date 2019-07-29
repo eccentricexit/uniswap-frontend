@@ -9,6 +9,8 @@ import { FACTORY_ADDRESSES, T2CR_ADDRESSES } from '../constants'
 
 import UncheckedJsonRpcSigner from './signer'
 
+const { bigNumberify } = ethers.utils
+
 export const ERROR_CODES = ['TOKEN_NAME', 'TOKEN_SYMBOL', 'TOKEN_DECIMALS'].reduce(
   (accumulator, currentValue, currentIndex) => {
     accumulator[currentValue] = currentIndex
@@ -90,7 +92,7 @@ export function isAddress(value) {
 }
 
 export function calculateGasMargin(value, margin) {
-  const offset = value.mul(margin).div(ethers.utils.bigNumberify(10000))
+  const offset = value.mul(margin).div(bigNumberify(10000))
   return value.add(offset)
 }
 
@@ -244,10 +246,10 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
   // amount > 0
   else {
     // amount of 'wei' in 1 'ether'
-    const baseAmount = ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(baseDecimals))
+    const baseAmount = bigNumberify(10).pow(bigNumberify(baseDecimals))
 
     const minimumDisplayAmount = baseAmount.div(
-      ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(displayDecimals))
+      bigNumberify(10).pow(bigNumberify(displayDecimals))
     )
 
     // if balance is less than the minimum display amount
@@ -288,55 +290,62 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
   }
 }
 
-const PRECISION_MULTIPLIER = '1000000000'
-
-export function computeMarginalPrice(inputReserve, outputReserve, deltaX) {
+export function computeMarginalPrice(inputReserve, outputReserve, deltaX, inputTokenDecimals = 18, outputTokenDecimals = 18) {
   if (!inputReserve || !outputReserve || !deltaX) return ethers.constants.Zero
 
   // marginalPrice = (x * y * gamma)/(x + deltaX * gamma)^2
   //
   // where:
   //
-  // x = tokens being sold in reserve before the trade = inputReserve
-  // y = tokens being bought in reserve before the trade = outputReserve
+  // x = amount of sell tokens in reserve before the trade = inputReserve
+  // y = amount of buy tokens in reserve before the trade = outputReserve
   // gamma = 1 - fee (expressed as a fraction in [0,1])
-  // deltaX = the amount of to  kens being sold
+  // deltaX = the amount of tokens being sold
   // marginalPrice = the price of the last unit bought
 
+  const FEE_PRECISION_MULTIPLIER = 100000000
   const UNISWAP_FEE = 0.003
-  const gamma = ethers.utils
-    .bigNumberify(PRECISION_MULTIPLIER)
-    .sub(ethers.utils.bigNumberify(UNISWAP_FEE * PRECISION_MULTIPLIER))
+  const gamma = bigNumberify(FEE_PRECISION_MULTIPLIER).sub(bigNumberify(UNISWAP_FEE * FEE_PRECISION_MULTIPLIER))
+
+  const TOKEN_PRECISION_MULTIPLIER = bigNumberify(10).pow(bigNumberify(Math.max(inputTokenDecimals, outputTokenDecimals)))
+  inputReserve = inputReserve.mul(TOKEN_PRECISION_MULTIPLIER)
+  outputReserve = outputReserve.mul(TOKEN_PRECISION_MULTIPLIER)
+
+  inputTokenDecimals = bigNumberify(10).pow(bigNumberify(inputTokenDecimals))
+  outputTokenDecimals = bigNumberify(10).pow(bigNumberify(outputTokenDecimals))
+  inputReserve = inputReserve.div(inputTokenDecimals)
+  outputReserve = outputReserve.div(outputTokenDecimals)
+
   const numerator = inputReserve
     .mul(outputReserve)
     .mul(gamma)
-    .div(ethers.utils.bigNumberify(PRECISION_MULTIPLIER))
+    .div(bigNumberify(FEE_PRECISION_MULTIPLIER))
 
   const denominator = inputReserve
-    .add(deltaX.mul(gamma).div(ethers.utils.bigNumberify(PRECISION_MULTIPLIER)))
-    .pow(ethers.utils.bigNumberify(2))
+    .add(
+      deltaX.mul(gamma).div(bigNumberify(FEE_PRECISION_MULTIPLIER)))
+    .pow(bigNumberify(2))
 
-  return (
-    numerator
-      .mul(ethers.utils.bigNumberify(PRECISION_MULTIPLIER))
-      .div(denominator)
-      .div(PRECISION_MULTIPLIER)
-      .toString() / PRECISION_MULTIPLIER
-  )
+  const marginalPrice = numerator
+    .mul(bigNumberify(FEE_PRECISION_MULTIPLIER))
+    .div(denominator)
+    .toString() / FEE_PRECISION_MULTIPLIER
+
+  return marginalPrice
 }
 
 // this mocks the getInputPrice function, and calculates the required output
 export function calculateEtherTokenOutputFromInput(inputAmount, inputReserve, outputReserve) {
-  const inputAmountWithFee = inputAmount.mul(ethers.utils.bigNumberify(997))
+  const inputAmountWithFee = inputAmount.mul(bigNumberify(997))
   const numerator = inputAmountWithFee.mul(outputReserve)
-  const denominator = inputReserve.mul(ethers.utils.bigNumberify(1000)).add(inputAmountWithFee)
+  const denominator = inputReserve.mul(bigNumberify(1000)).add(inputAmountWithFee)
   return numerator.div(denominator)
 }
 
 // this mocks the getOutputPrice function, and calculates the required input
 export function calculateEtherTokenInputFromOutput(outputAmount, inputReserve, outputReserve) {
-  const numerator = inputReserve.mul(outputAmount).mul(ethers.utils.bigNumberify(1000))
-  const denominator = outputReserve.sub(outputAmount).mul(ethers.utils.bigNumberify(997))
+  const numerator = inputReserve.mul(outputAmount).mul(bigNumberify(1000))
+  const denominator = outputReserve.sub(outputAmount).mul(bigNumberify(997))
   return numerator.div(denominator).add(ethers.constants.One)
 }
 
@@ -345,10 +354,15 @@ export function computeRelativeMarginalPrice(
   reserveTokenInput,
   reserveETHInput,
   reserveTokenOutput,
-  reserveETHOutput
+  reserveETHOutput,
+  inputDecimals,
+  outputDecimals
 ) {
+  // Token-token exchanges use ether as the intermadiary currency.
+  // So we use 18 decimal places for ETH for computing the marginal prices.
+  const ETH_DECIMALS = 18
   const ethAmount = calculateEtherTokenOutputFromInput(inputTokenAmount, reserveTokenInput, reserveETHInput)
-  const tokenInputMarginalPrice = computeMarginalPrice(reserveTokenInput, reserveETHInput, inputTokenAmount)
-  const tokenOutputMarginalPrice = 1 / computeMarginalPrice(reserveETHOutput, reserveTokenOutput, ethAmount).toString()
+  const tokenInputMarginalPrice = computeMarginalPrice(reserveTokenInput, reserveETHInput, inputTokenAmount, inputDecimals, ETH_DECIMALS)
+  const tokenOutputMarginalPrice = 1 / computeMarginalPrice(reserveETHOutput, reserveTokenOutput, ethAmount, ETH_DECIMALS, outputDecimals).toString()
   return tokenInputMarginalPrice.toString() / tokenOutputMarginalPrice
 }

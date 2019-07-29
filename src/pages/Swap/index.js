@@ -532,10 +532,12 @@ export default function Swap({ initialCurrency }) {
     const b = text => <BlueSpan>{text}</BlueSpan>
 
     let marginalPriceDisplay = ' - '
+    if (tokenReservesInput.eq(ethers.utils.bigNumberify('0')) || tokenReservesOutput.eq(ethers.utils.bigNumberify('0')))
+      return marginalPriceDisplay
 
-    if (tokenReservesInput && tokenReservesOutput && inputValueParsed && outputValueParsed && tokenReservesInput.gt(ethers.utils.bigNumberify('0')) && tokenReservesOutput.gt(ethers.utils.bigNumberify('0')))
+    if (tokenReservesInput && tokenReservesOutput && inputValueParsed && outputValueParsed)
       if (swapType === ETH_TO_TOKEN || swapType === TOKEN_TO_ETH) {
-        const marginalPrice = computeMarginalPrice(tokenReservesInput, tokenReservesOutput, inputValueParsed)
+        const marginalPrice = computeMarginalPrice(tokenReservesInput, tokenReservesOutput, inputValueParsed, inputDecimals, outputDecimals)
         if (swapType === ETH_TO_TOKEN)
           marginalPriceDisplay = `1 ${invertedMarginalPrice ? inputSymbol : outputSymbol} = ${
             invertedMarginalPrice ? marginalPrice.toFixed(7) : (1 / marginalPrice).toFixed(7)
@@ -550,7 +552,9 @@ export default function Swap({ initialCurrency }) {
           tokenReservesInput,
           reserveETHInput,
           tokenReservesOutput,
-          reserveETHOutput
+          reserveETHOutput,
+          inputDecimals,
+          outputDecimals
         )
         marginalPriceDisplay = `1 ${invertedMarginalPrice ? inputSymbol : outputSymbol} = ${
           invertedMarginalPrice ? marginalPrice.toFixed(7) : (1 / marginalPrice).toFixed(7)
