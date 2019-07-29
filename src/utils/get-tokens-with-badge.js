@@ -1,8 +1,14 @@
 import _arbitrableAddressList from '../constants/abis/arbitrable-address-list.json'
 import _tokensView from '../constants/abis/tokens-view.json'
 import _exchangeView from '../constants/abis/exchange-view.json'
-import { T2CR_ADDRESSES, ERC20_BADGE_ADDRESSES, TOKENS_VIEW_ADDRESSES, EXCHANGE_VIEW_ADDRESSES, FACTORY_ADDRESSES } from '../constants/index'
 import { getContract } from './index'
+import {
+  T2CR_ADDRESSES,
+  ERC20_BADGE_ADDRESSES,
+  TOKENS_VIEW_ADDRESSES,
+  EXCHANGE_VIEW_ADDRESSES,
+  FACTORY_ADDRESSES
+} from '../constants/index'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 const ZERO_ID = '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -18,7 +24,7 @@ export default async function getTokensWithBadge(library, networkId) {
     )
     const tokensView = getContract(TOKENS_VIEW_ADDRESSES[networkId], _tokensView, library, ZERO_ADDRESS)
     const exchangeView = getContract(EXCHANGE_VIEW_ADDRESSES[networkId], _exchangeView, library, ZERO_ADDRESS)
-    const addressesWithBadge = (await arbitrableAddressList.queryAddresses(ZERO_ADDRESS, 100, filter, true))[0].filter(
+    const addressesWithBadge = (await arbitrableAddressList.queryAddresses(ZERO_ADDRESS, 500, filter, true))[0].filter(
       address => address !== ZERO_ADDRESS
     )
     const tokenIDs = (await tokensView.getTokensIDsForAddresses(T2CR_ADDRESSES[networkId], addressesWithBadge)).filter(tokenID => tokenID !== ZERO_ID)

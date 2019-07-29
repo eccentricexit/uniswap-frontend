@@ -20,12 +20,12 @@ export const TOKENS_VIEW_ADDRESSES = {
   42: '0x5872ab9e1014f58891eb66a2fa144f0d27e26754'
 }
 
-export const TOKENS_VIEW_V2_ADDRESSES = {
-  1: '0x091ea7d8b8c94fd76011c51cfd296cfe010efbd1',
-  42: '0xc8afeb4d143725d96c4938964b3e878735e155d0'
-}
-
 export const EXCHANGE_VIEW_ADDRESSES = {
   1: '0x3f82be785b9a037ce687f811e070b5c0cab46d77',
   42: '0xdfc66691c79a57130f78b53c62357bcbb56ecb60'
+}
+
+export const ADDRESS_COUNT_ADDRESSES = {
+  1: '0x9d55c4aac56f89e6d948f17c3e6b7a2cf50e2c73',
+  42: '0x8fb7a71eca4504cb6f6cc32df1236627cb3e6aca'
 }
