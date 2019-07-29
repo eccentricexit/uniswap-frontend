@@ -48,8 +48,8 @@ export default async function getTokensWithBadge(library, networkId) {
       tokensInfo[address].exchangeAddress
     ])
   } catch (err) {
-    if (err.slice && err.slice(0, 14) === 'call exception') return getTokensWithBadge(library, networkId)
-    // This is an issue with infura. Simply try again.
+    if (err.message.slice && err.message.slice(0, 14) === 'call exception') // This is an issue with infura. Simply try again.
+      return getTokensWithBadge(library, networkId)
     else {
       console.error(err)
       return []
