@@ -34,7 +34,6 @@ export default async function getTokensWithBadge(library, networkId) {
         ...acc,
         [curr[3]]: curr
       }), {})
-
     const addresses = Object.keys(tokensInfo)
     const exchangeAddresses = (await exchangeView.getExchanges(FACTORY_ADDRESSES[networkId], addresses)).slice(0, addresses.length)
     addresses.forEach((address, i) => {

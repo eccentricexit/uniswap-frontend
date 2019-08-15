@@ -65,6 +65,12 @@ function reducer(state, { type, payload }) {
       }
     }
     case SET_FETCHING: {
+      if (state.isFetching && payload === false) {
+        localStorage.setItem(
+          UNISWAP_NINJA_TOKENS_CACHE_KEY,
+          JSON.stringify({ ...state, isFetching: false})
+        )
+      }
       return {
         ...state,
         isFetching: payload
@@ -76,8 +82,15 @@ function reducer(state, { type, payload }) {
   }
 }
 
+const UNISWAP_NINJA_TOKENS_CACHE_KEY = 'UNISWAP_NINJA_TOKENS_CACHE_KEY'
+
 export default function Provider({ children }) {
-  const [state, dispatch] = useReducer(reducer, { 1: {} })
+  let initialState = localStorage.getItem(UNISWAP_NINJA_TOKENS_CACHE_KEY)
+  if (!initialState)
+    initialState = { 1: {} }
+  else
+    initialState = JSON.parse(initialState)
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   const update = useCallback(
     (networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress, missingERC20Badge, missingDecimals) => {
@@ -108,34 +121,33 @@ export default function Provider({ children }) {
   const { library, networkId } = useWeb3Context()
 
   useEffect(() => {
-    const fetchFromT2CR = async () => {
+    // Fetch tokens from t2cr.
+    ;(async () => {
+      if (!library) return
       setFetching(true)
-      if (library) {
-        const tokens = (await getTokensWithBadge(library, networkId)).map(
-          token => ({
-            [SYMBOL]: token[0],
-            [ADDRESS]: token[1],
-            [NAME]: token[2],
-            [SYMBOL_MULTIHASH]: token[3],
-            [EXCHANGE_ADDRESS]: token[5],
-            [MISSING_ERC20_BADGE]: false
-          }),
-          {}
+      const tokens = (await getTokensWithBadge(library, networkId)).map(
+        token => ({
+          [SYMBOL]: token[0],
+          [ADDRESS]: token[1],
+          [NAME]: token[2],
+          [SYMBOL_MULTIHASH]: token[3],
+          [EXCHANGE_ADDRESS]: token[5],
+          [MISSING_ERC20_BADGE]: false
+        }),
+        {}
+      )
+      tokens.forEach(token => {
+        update(
+          networkId,
+          token[ADDRESS],
+          token[NAME],
+          token[SYMBOL],
+          token[SYMBOL_MULTIHASH],
+          token[EXCHANGE_ADDRESS]
         )
-        tokens.forEach(token => {
-          update(
-            networkId,
-            token[ADDRESS],
-            token[NAME],
-            token[SYMBOL],
-            token[SYMBOL_MULTIHASH],
-            token[EXCHANGE_ADDRESS]
-          )
-        })
-        setFetching(false)
-      }
-    }
-    fetchFromT2CR()
+      })
+      setFetching(false)
+    })()
   }, [library, networkId, update])
 
   return (

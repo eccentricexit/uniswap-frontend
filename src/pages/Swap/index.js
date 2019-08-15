@@ -5,12 +5,13 @@ import { useWeb3Context } from 'web3-react'
 import { ethers } from 'ethers'
 import styled from 'styled-components'
 
-import { Button } from '../../theme'
+import { Button, Spinner } from '../../theme'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import NewContextualInfo from '../../components/ContextualInfoNew'
 import OversizedPanel from '../../components/OversizedPanel'
 import ArrowDownBlue from '../../assets/images/arrow-down-blue.svg'
 import ArrowDownGrey from '../../assets/images/arrow-down-grey.svg'
+import Circle from '../../assets/images/circle.svg'
 import {
   amountFormatter,
   calculateGasMargin,
@@ -87,6 +88,10 @@ const Flex = styled.div`
   button {
     max-width: 20rem;
   }
+`
+
+const SpinnerWrapper = styled(Spinner)`
+  margin: 0 0.25rem 0 0.25rem;
 `
 
 function calculateSlippageBounds(value, token = false) {
@@ -334,7 +339,9 @@ export default function Swap({ initialCurrency }) {
   useEffect(() => {
     const inputValueCalculation = independentField === INPUT ? independentValueParsed : dependentValueMaximum
     if (inputBalance && (inputAllowance || inputCurrency === 'ETH') && inputValueCalculation) {
-      if (inputBalance.lt(inputValueCalculation)) {
+      if (!independentDecimals || !dependentDecimals) {
+        setInputError(<SpinnerWrapper src={Circle} alt="loader" />)
+      } else if (inputBalance.lt(inputValueCalculation) && independentDecimals && dependentDecimals) {
         setInputError(t('insufficientBalance'))
       } else if (inputCurrency !== 'ETH' && inputAllowance.lt(inputValueCalculation)) {
         setInputError(t('unlockTokenCont'))
@@ -349,7 +356,17 @@ export default function Swap({ initialCurrency }) {
         setShowUnlock(false)
       }
     }
-  }, [independentField, independentValueParsed, dependentValueMaximum, inputBalance, inputCurrency, inputAllowance, t])
+  }, [
+    independentField,
+    independentValueParsed,
+    dependentValueMaximum,
+    inputBalance,
+    inputCurrency,
+    inputAllowance,
+    t,
+    dependentDecimals,
+    independentDecimals
+  ])
 
   const [tokenReservesInput, setTokenReservesInput] = useState()
   const [tokenReservesOutput, setTokenReservesOutput] = useState()
@@ -655,6 +672,8 @@ export default function Swap({ initialCurrency }) {
       contextualInfo = t('selectTokenCont')
     } else if (!independentValue) {
       contextualInfo = t('enterValueCont')
+    } else if (!independentDecimals || !dependentDecimals) {
+      contextualInfo = <SpinnerWrapper src={Circle} alt="loader" />
     } else if (!account) {
       contextualInfo = t('noWallet')
       isError = true
