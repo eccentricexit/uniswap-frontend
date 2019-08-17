@@ -613,7 +613,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
                 <SpinnerWrapper src={Circle} alt="loader" />
               )}
               <TokenRowUsd>
-                {usdBalance ? (usdBalance.lt(0.01) ? '<$0.01' : '$' + formatToUsd(usdBalance)) : ''}
+                {usdBalance && !isNaN(usdBalance) ? (usdBalance.lt(0.01) ? '<$0.01' : '$' + formatToUsd(usdBalance)) : ''}
               </TokenRowUsd>
             </TokenRowRight>
           </TokenModalRow>

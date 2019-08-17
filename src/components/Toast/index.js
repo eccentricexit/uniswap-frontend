@@ -36,12 +36,10 @@ export const TYPE = {
 }
 
 export default ({ title, msg, type = TYPE.PENDING }) => {
-  const [darkMode] = useDarkModeManager()
-
   return (
     <ColumnDiv>
       {type === TYPE.SUCCESS ? (
-        <StyledCheck size="16" color={theme(darkMode).royalBlue} />
+        <StyledCheck size="16" color={theme().royalBlue} />
       ) : (
         <SpinnerWrapper src={Circle} alt="loader" />
       )}
