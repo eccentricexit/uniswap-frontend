@@ -6,6 +6,8 @@ import { toast } from 'react-toastify'
 import Web3ReactManager from '../components/Web3ReactManager'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { Spinner } from '../theme'
+import Circle from '../assets/images/circle-grey.svg'
 
 import NavigationTabs from '../components/NavigationTabs'
 import { isAddress } from '../utils'
@@ -51,6 +53,13 @@ const Body = styled.div`
   /* margin: 0 1.25rem 1.25rem 1.25rem; */
 `
 
+const SpinnerWrapper = styled.div`
+  margin: 1rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`
+
 toast.configure({
   autoClose: false,
   position: 'bottom-right'
@@ -70,7 +79,7 @@ export default function App() {
                 <BrowserRouter>
                   <NavigationTabs />
                   {/* this Suspense is for route code-splitting */}
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<SpinnerWrapper><Spinner src={Circle}/></SpinnerWrapper>}>
                     <Switch>
                       <Route exact strict path="/swap" component={Swap} />
                       <Route
