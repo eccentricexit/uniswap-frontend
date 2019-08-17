@@ -5,7 +5,6 @@ import { Check } from 'react-feather'
 import { Spinner } from '../../theme'
 import Circle from '../../assets/images/circle.svg'
 import { theme } from '../../theme'
-import { useDarkModeManager } from '../../contexts/LocalStorage';
 
 const TitleText = styled.h4`
   margin: 0;
