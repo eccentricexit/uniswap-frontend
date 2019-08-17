@@ -6,6 +6,13 @@ import logo from '../../assets/images/logo.png'
 import Web3Status from '../Web3Status'
 import { darken } from 'polished'
 
+const HeaderFrame = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+`
+
 const HeaderElement = styled.div`
   margin: 1.25rem;
   display: flex;
@@ -15,24 +22,25 @@ const HeaderElement = styled.div`
   }
 `
 
-const ConnectElement = styled.div`
-  margin: 1.25rem;
-  margin-left: 0;
-  display: flex;
-  min-width: 0;
+const Nod = styled.span`
+  transform: rotate(0deg);
+  transition: transform 150ms ease-out;
+
+  :hover {
+    transform: rotate(10deg);
+  }
 `
 
 const Title = styled.div`
   display: flex;
   align-items: center;
 
-  #image {
-    font-size: 1.5rem;
-    margin-right: 1rem;
+  :hover {
+    cursor: pointer;
   }
 
   #link {
-    text-decoration-color: ${({ theme }) => theme.wisteriaPurple};
+    text-decoration-color: ${({ theme }) => theme.UniswapPink};
   }
 
   #title {
@@ -45,7 +53,7 @@ const Title = styled.div`
       font-size: 0.8rem;
     }
     :hover {
-      color: ${({ theme }) => darken(0.2, theme.wisteriaPurple)};
+      color: ${({ theme }) => darken(0.1, theme.wisteriaPurple)};
     }
   }
 `
@@ -59,7 +67,7 @@ const ExtraLink = styled.h1`
   display: inline;
   font-size: 1rem;
   font-weight: 500;
-  color: ${({ theme }) => theme.klerosPurple};
+  color: ${({ theme }) => theme.UniswapPink};
   margin: 0 10px;
   @media only screen and (max-width: 450px) {
     font-size: 0.8rem;
@@ -71,10 +79,12 @@ const ExtraLink = styled.h1`
 
 export default function Header() {
   return (
-    <>
+    <HeaderFrame>
       <HeaderElement>
         <Title>
-          <Logo alt="Uniswap Ninja Logo" src={logo} />
+          <Nod>
+            <Logo alt="Uniswap Ninja Logo" src={logo} />
+          </Nod>
           <Link id="link" href="https://uniswap.io">
             <h1 id="title">Uniswap.Ninja</h1>
           </Link>
@@ -83,10 +93,9 @@ export default function Header() {
           </Link>
         </Title>
       </HeaderElement>
-
-      <ConnectElement>
+      <HeaderElement>
         <Web3Status />
-      </ConnectElement>
-    </>
+      </HeaderElement>
+    </HeaderFrame>
   )
 }
