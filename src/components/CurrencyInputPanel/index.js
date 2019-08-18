@@ -235,6 +235,10 @@ const TokenSymbolGroup = styled.div`
   margin-left: 1rem;
 `
 
+const TokenFullName = styled.div`
+  color: ${({ theme }) => theme.chaliceGray};
+`
+
 const TokenRowBalance = styled.div`
   font-size: 1rem;
   line-height: 20px;
@@ -600,10 +604,10 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
             hidePointer={exchangeAddress === ethers.constants.AddressZero}
           >
             <TokenRowLeft>
-              <TokenLogo address={address} symbolMultihash={symbolMultihash} />
+              <TokenLogo address={address} symbolMultihash={symbolMultihash} size={'2rem'} />
               <TokenSymbolGroup>
-                <span id="name">{name || address}</span>
-                <span id="symbol">{symbol || ''}</span>
+                <span id="symbol">{symbol}</span>
+                <TokenFullName>{name}</TokenFullName>
               </TokenSymbolGroup>
             </TokenRowLeft>
             <TokenRowRight>
