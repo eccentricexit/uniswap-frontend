@@ -9,6 +9,7 @@ import {
   EXCHANGE_VIEW_ADDRESSES,
   FACTORY_ADDRESSES
 } from '../constants/index'
+import decimalsDictionary from './decimals-dictionary.js';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 const ZERO_ID = '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -32,8 +33,15 @@ export default async function getTokensWithBadge(library, networkId) {
       T2CR_ADDRESSES[networkId],
       tokenIDs
     ))
-      .map(tokenInfo => ({...tokenInfo, 6: tokenInfo[6].toNumber(), decimals: tokenInfo.decimals.toNumber() }))
       .filter(tokenInfo => tokenInfo[3] !== ZERO_ADDRESS)
+      .map(tokenInfo => ({...tokenInfo, 6: tokenInfo[6].toNumber(), decimals: tokenInfo.decimals.toNumber() }))
+      .map(tokenInfo => {
+        // Set decimals from dictionary, if available.
+        // This is done because some token contracts (like DGD) may not implement the decimals() function.
+        if (decimalsDictionary[tokenInfo[3]])
+          tokenInfo.decimals = decimalsDictionary[tokenInfo[3]]
+        return tokenInfo
+      })
       .reduce((acc, curr) => ({
         ...acc,
         [curr[3]]: curr

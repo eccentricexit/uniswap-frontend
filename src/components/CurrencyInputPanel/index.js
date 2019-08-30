@@ -9,6 +9,7 @@ import { darken } from 'polished'
 import Tooltip from '@reach/tooltip'
 import '@reach/tooltip/styles.css'
 import { isMobile } from 'react-device-detect'
+import { useWeb3Context } from 'web3-react'
 
 import { BorderlessInput } from '../../theme'
 import { useTokenContract } from '../../hooks'
@@ -454,6 +455,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
 
   const [searchQuery, setSearchQuery] = useState('')
   const { exchangeAddress } = useTokenDetails(searchQuery)
+  const { account } = useWeb3Context()
 
   const allTokens = useAllTokenDetails()
 
@@ -616,7 +618,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
               {balance ? (
                 <TokenRowBalance>{balance && (balance > 0 || balance === '<0.0001') ? balance : '-'}</TokenRowBalance>
               ) : (
-                <SpinnerWrapper src={Circle} alt="loader" />
+                account && <SpinnerWrapper src={Circle} alt="loader" />
               )}
               <TokenRowUsd>
                 {usdBalance && !isNaN(usdBalance) ? (usdBalance.lt(0.01) ? '<$0.01' : '$' + formatToUsd(usdBalance)) : ''}
