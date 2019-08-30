@@ -16,8 +16,7 @@ export const ERC20_BADGE_ADDRESSES = {
 }
 
 export const TOKENS_VIEW_ADDRESSES = {
-  1: '0xbbcb737ed8f95ca3e2c23f29c8b20748c1197124',
-  42: '0x5872ab9e1014f58891eb66a2fa144f0d27e26754'
+  1: '0xdc06b2e32399d3db41e69da4d112cf85dde4103f'
 }
 
 export const EXCHANGE_VIEW_ADDRESSES = {

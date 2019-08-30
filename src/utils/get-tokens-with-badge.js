@@ -28,12 +28,17 @@ export default async function getTokensWithBadge(library, networkId) {
       address => address !== ZERO_ADDRESS
     )
     const tokenIDs = (await tokensView.getTokensIDsForAddresses(T2CR_ADDRESSES[networkId], addressesWithBadge)).filter(tokenID => tokenID !== ZERO_ID)
-    const tokensInfo = (await tokensView.getTokens(T2CR_ADDRESSES[networkId], tokenIDs))
+    const tokensInfo = (await tokensView.getTokens(
+      T2CR_ADDRESSES[networkId],
+      tokenIDs
+    ))
+      .map(tokenInfo => ({...tokenInfo, 6: tokenInfo[6].toNumber(), decimals: tokenInfo.decimals.toNumber() }))
       .filter(tokenInfo => tokenInfo[3] !== ZERO_ADDRESS)
       .reduce((acc, curr) => ({
         ...acc,
         [curr[3]]: curr
       }), {})
+
     const addresses = Object.keys(tokensInfo)
     const exchangeAddresses = (await exchangeView.getExchanges(FACTORY_ADDRESSES[networkId], addresses)).slice(0, addresses.length)
     addresses.forEach((address, i) => {
@@ -50,14 +55,15 @@ export default async function getTokensWithBadge(library, networkId) {
       tokensInfo[address].addr,
       tokensInfo[address].name,
       tokensInfo[address].symbolMultihash,
-      tokensInfo[address].exchangeAddress
+      tokensInfo[address].exchangeAddress,
+      tokensInfo[address].decimals
     ])
   } catch (err) {
-    if (err.message.slice && err.message.slice(0, 14) === 'call exception') // This is an issue with infura. Simply try again.
-      return getTokensWithBadge(library, networkId)
-    else {
+    // if (err.message.slice && err.message.slice(0, 14) === 'call exception') // This is an issue with infura. Simply try again.
+    //   return getTokensWithBadge(library, networkId)
+    // else {
       console.error(err)
       return []
-    }
+    // }
   }
 }

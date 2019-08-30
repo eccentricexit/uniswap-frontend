@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
+import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useState } from 'react'
 import { useWeb3Context } from 'web3-react'
 import { ethers } from 'ethers'
 import { isAddress, getTokenDecimals, getTokenExchangeAddressFromFactory, safeAccess, getTokenInfo } from '../utils'
@@ -91,6 +91,7 @@ export default function Provider({ children }) {
   else
     initialState = JSON.parse(initialState)
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [fetched, setFetched] = useState()
 
   const update = useCallback(
     (networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress, missingERC20Badge, missingDecimals) => {
@@ -123,7 +124,7 @@ export default function Provider({ children }) {
   useEffect(() => {
     // Fetch tokens from t2cr.
     ;(async () => {
-      if (!library) return
+      if (!library || state.isFetching || fetched) return
       setFetching(true)
       const tokens = (await getTokensWithBadge(library, networkId)).map(
         token => ({
@@ -132,7 +133,8 @@ export default function Provider({ children }) {
           [NAME]: token[2],
           [SYMBOL_MULTIHASH]: token[3],
           [EXCHANGE_ADDRESS]: token[5],
-          [MISSING_ERC20_BADGE]: false
+          [MISSING_ERC20_BADGE]: false,
+          [DECIMALS]: token[6]
         }),
         {}
       )
@@ -143,12 +145,14 @@ export default function Provider({ children }) {
           token[NAME],
           token[SYMBOL],
           token[SYMBOL_MULTIHASH],
-          token[EXCHANGE_ADDRESS]
+          token[EXCHANGE_ADDRESS],
+          token[DECIMALS],
         )
       })
       setFetching(false)
+      setFetched(true)
     })()
-  }, [library, networkId, update])
+  }, [fetched, library, networkId, state.isFetching, update])
 
   return (
     <TokensContext.Provider value={useMemo(() => [state, { update }], [state, update])}>
