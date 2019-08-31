@@ -228,7 +228,7 @@ export function useTokenDetails(tokenAddress) {
               name || tokenInfoName || '',
               symbol || tokenInfoTicker || '---',
               symbolMultihash || tokenInfoSymbolMultihash || '',
-              resolvedDecimals,
+              decimals || resolvedDecimals,
               resolvedExchangeAddress,
               !!resolvedTokenInfo,
               missingDecimals

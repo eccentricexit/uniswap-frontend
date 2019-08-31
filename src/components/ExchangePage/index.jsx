@@ -389,7 +389,7 @@ export default function ExchangePage({ initialCurrency, sending }) {
   useEffect(() => {
     const amount = independentValueParsed
 
-    if (missingDecimalsInput || missingDecimalsOutput) {
+    if ((!inputDecimals || !outputDecimals) && (missingDecimalsInput || missingDecimalsOutput)) {
       setIndependentError(t('missingDecimalPlaces'))
       dispatchSwapState({ type: 'UPDATE_DEPENDENT', payload: '' })
     } else if (swapType === SWAP_TYPE.ETH_TO_TOKEN) {
@@ -498,20 +498,7 @@ export default function ExchangePage({ initialCurrency, sending }) {
         }
       }
     }
-  }, [
-    independentValueParsed,
-    swapType,
-    outputReserveETH,
-    outputReserveToken,
-    inputReserveETH,
-    inputReserveToken,
-    independentField,
-    t,
-    inputCurrency,
-    outputCurrency,
-    missingDecimalsInput,
-    missingDecimalsOutput
-  ])
+  }, [independentValueParsed, swapType, outputReserveETH, outputReserveToken, inputReserveETH, inputReserveToken, independentField, t, inputCurrency, outputCurrency, missingDecimalsInput, missingDecimalsOutput, inputDecimals, outputDecimals])
 
   const [inverted, setInverted] = useState(false)
   const exchangeRate = getExchangeRate(inputValueParsed, inputDecimals, outputValueParsed, outputDecimals)
