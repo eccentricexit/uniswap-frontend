@@ -499,16 +499,16 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
           return aSymbol === bSymbol ? 0 : aSymbol === 'ETH'.toLowerCase() ? -1 : 1
         }
 
-        if (usdAmounts[a] && !usdAmounts[b]) {
+        if (usdAmounts[a.address] && !usdAmounts[b.address]) {
           return -1
-        } else if (usdAmounts[b] && !usdAmounts[a]) {
+        } else if (usdAmounts[b.address] && !usdAmounts[a.address]) {
           return 1
         }
 
         // check for balance - sort by value
-        if (usdAmounts[a] && usdAmounts[b]) {
-          const aUSD = usdAmounts[a]
-          const bUSD = usdAmounts[b]
+        if (usdAmounts[a.address] && usdAmounts[b.address]) {
+          const aUSD = usdAmounts[a.address]
+          const bUSD = usdAmounts[b.address]
 
           return aUSD.gt(bUSD) ? -1 : aUSD.lt(bUSD) ? 1 : 0
         }
