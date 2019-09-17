@@ -499,6 +499,9 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
           return aSymbol === bSymbol ? 0 : aSymbol === 'ETH'.toLowerCase() ? -1 : 1
         }
 
+        if (a.hasTrueCryptoSysBadge && !b.hasTrueCryptoSysBadge) return -1
+        if (!a.hasTrueCryptoSysBadge && b.hasTrueCryptoSysBadge) return 1
+
         if (usdAmounts[a.address] && !usdAmounts[b.address]) {
           return -1
         } else if (usdAmounts[b.address] && !usdAmounts[a.address]) {
@@ -534,7 +537,8 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
           usdBalance: usdBalance,
           symbolMultihash: token.symbolMultihash,
           missingERC20Badge: token.missingERC20Badge,
-          exchangeAddress: token.exchangeAddress
+          exchangeAddress: token.exchangeAddress,
+          hasTrueCryptoSysBadge: token.hasTrueCryptoSysBadge
         }
       })
   }, [allBalances, allTokens, usdAmounts])
@@ -596,7 +600,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
       exchangeAddress,
       missingDecimals,
       balance,
-      usdBalance
+      usdBalance,
     }) => {
       return (
         <div key={address}>

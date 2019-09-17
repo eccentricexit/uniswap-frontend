@@ -13,6 +13,7 @@ const SYMBOL_MULTIHASH = 'symbolMultihash'
 const ADDRESS = 'address'
 const MISSING_ERC20_BADGE = 'missingERC20Badge'
 const MISSING_DECIMALS = 'missingDecimals'
+const HAS_TRUE_CRYPTOSYS_BADGE = 'hasTrueCryptoSysBadge'
 
 const UPDATE = 'UPDATE'
 const SET_FETCHING = 'SET_FETCHING'
@@ -24,7 +25,8 @@ const ETH = {
     [DECIMALS]: 18,
     [EXCHANGE_ADDRESS]: null,
     [MISSING_ERC20_BADGE]: false,
-    [MISSING_DECIMALS]: false
+    [MISSING_DECIMALS]: false,
+    [HAS_TRUE_CRYPTOSYS_BADGE]: false
   }
 }
 
@@ -46,7 +48,8 @@ function reducer(state, { type, payload }) {
         exchangeAddress,
         symbolMultihash,
         missingERC20Badge,
-        missingDecimals
+        missingDecimals,
+        hasTrueCryptoSysBadge
       } = payload
       return {
         ...state,
@@ -59,7 +62,8 @@ function reducer(state, { type, payload }) {
             [DECIMALS]: decimals,
             [EXCHANGE_ADDRESS]: exchangeAddress,
             [MISSING_ERC20_BADGE]: missingERC20Badge,
-            [MISSING_DECIMALS]: missingDecimals
+            [MISSING_DECIMALS]: missingDecimals,
+            [HAS_TRUE_CRYPTOSYS_BADGE]: hasTrueCryptoSysBadge
           }
         }
       }
@@ -94,7 +98,7 @@ export default function Provider({ children }) {
   const [fetched, setFetched] = useState()
 
   const update = useCallback(
-    (networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress, missingERC20Badge, missingDecimals) => {
+    (networkId, tokenAddress, name, symbol, symbolMultihash, decimals, exchangeAddress, missingERC20Badge, missingDecimals, hasTrueCryptoSysBadge) => {
       dispatch({
         type: UPDATE,
         payload: {
@@ -106,7 +110,8 @@ export default function Provider({ children }) {
           decimals,
           exchangeAddress,
           missingERC20Badge,
-          missingDecimals
+          missingDecimals,
+          hasTrueCryptoSysBadge
         }
       })
     },
@@ -132,9 +137,11 @@ export default function Provider({ children }) {
           [ADDRESS]: token[1],
           [NAME]: token[2],
           [SYMBOL_MULTIHASH]: token[3],
-          [EXCHANGE_ADDRESS]: token[5],
+          [EXCHANGE_ADDRESS]: token[4],
           [MISSING_ERC20_BADGE]: false,
-          [DECIMALS]: token[6]
+          [MISSING_DECIMALS]: null,
+          [DECIMALS]: token[5],
+          [HAS_TRUE_CRYPTOSYS_BADGE]: token[6]
         }),
         {}
       )
@@ -145,8 +152,11 @@ export default function Provider({ children }) {
           token[NAME],
           token[SYMBOL],
           token[SYMBOL_MULTIHASH],
-          token[EXCHANGE_ADDRESS],
           token[DECIMALS],
+          token[EXCHANGE_ADDRESS],
+          token[MISSING_ERC20_BADGE],
+          token[MISSING_DECIMALS],
+          token[HAS_TRUE_CRYPTOSYS_BADGE]
         )
       })
       setFetching(false)
@@ -177,7 +187,8 @@ export function useTokenDetails(tokenAddress) {
     [DECIMALS]: decimals,
     [EXCHANGE_ADDRESS]: exchangeAddress,
     [SYMBOL_MULTIHASH]: symbolMultihash,
-    [MISSING_DECIMALS]: missingDecimals
+    [MISSING_DECIMALS]: missingDecimals,
+    [HAS_TRUE_CRYPTOSYS_BADGE]: hasTrueCryptoSysBadge
   } = safeAccess(allTokensInNetwork, [tokenAddress]) || {}
 
   useEffect(() => {
@@ -231,7 +242,8 @@ export function useTokenDetails(tokenAddress) {
               decimals || resolvedDecimals,
               resolvedExchangeAddress,
               !!resolvedTokenInfo,
-              missingDecimals
+              missingDecimals,
+              hasTrueCryptoSysBadge
             )
           }
         }
@@ -240,9 +252,9 @@ export function useTokenDetails(tokenAddress) {
         stale = true
       }
     }
-  }, [tokenAddress, name, symbol, decimals, exchangeAddress, symbolMultihash, networkId, missingDecimals, library, update])
+  }, [tokenAddress, name, symbol, decimals, exchangeAddress, symbolMultihash, networkId, missingDecimals, library, update, hasTrueCryptoSysBadge])
 
-  return { name, symbol, decimals, exchangeAddress, symbolMultihash, missingDecimals }
+  return { name, symbol, decimals, exchangeAddress, symbolMultihash, missingDecimals, hasTrueCryptoSysBadge }
 }
 
 export function useAllTokenDetails(requireExchange = false) {
