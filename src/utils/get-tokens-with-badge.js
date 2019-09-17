@@ -7,7 +7,8 @@ import {
   ERC20_BADGE_ADDRESSES,
   TOKENS_VIEW_ADDRESSES,
   EXCHANGE_VIEW_ADDRESSES,
-  FACTORY_ADDRESSES
+  FACTORY_ADDRESSES,
+  TRUE_CRYPTOSYSTEM_BADGE_ADDRESSES
 } from '../constants/index'
 import decimalsDictionary from './decimals-dictionary.js';
 
@@ -17,18 +18,32 @@ const filter = [false, true, false, true, false, true, false, false]
 
 export default async function getTokensWithBadge(library, networkId) {
   try {
-    const arbitrableAddressList = getContract(
+    const erc20Badge = getContract(
       ERC20_BADGE_ADDRESSES[networkId],
+      _arbitrableAddressList,
+      library,
+      ZERO_ADDRESS
+    )
+    const trueCryptosystemBadge = getContract(
+      TRUE_CRYPTOSYSTEM_BADGE_ADDRESSES[networkId],
       _arbitrableAddressList,
       library,
       ZERO_ADDRESS
     )
     const tokensView = getContract(TOKENS_VIEW_ADDRESSES[networkId], _tokensView, library, ZERO_ADDRESS)
     const exchangeView = getContract(EXCHANGE_VIEW_ADDRESSES[networkId], _exchangeView, library, ZERO_ADDRESS)
-    const addressesWithBadge = (await arbitrableAddressList.queryAddresses(ZERO_ADDRESS, 500, filter, true))[0].filter(
+    let [addrWithERC20Badge, addrWithTrueCryptosysBadge] = await Promise.all([
+      erc20Badge.queryAddresses(ZERO_ADDRESS, 500, filter, true),
+      trueCryptosystemBadge.queryAddresses(ZERO_ADDRESS, 500, filter, true)
+    ])
+    addrWithERC20Badge = addrWithERC20Badge[0].filter(
       address => address !== ZERO_ADDRESS
     )
-    const tokenIDs = (await tokensView.getTokensIDsForAddresses(T2CR_ADDRESSES[networkId], addressesWithBadge)).filter(tokenID => tokenID !== ZERO_ID)
+    addrWithTrueCryptosysBadge = addrWithTrueCryptosysBadge[0].filter(
+      address => address !== ZERO_ADDRESS
+    )
+
+    const tokenIDs = (await tokensView.getTokensIDsForAddresses(T2CR_ADDRESSES[networkId], addrWithERC20Badge)).filter(tokenID => tokenID !== ZERO_ID)
     const tokensInfo = (await tokensView.getTokens(
       T2CR_ADDRESSES[networkId],
       tokenIDs
@@ -58,20 +73,21 @@ export default async function getTokensWithBadge(library, networkId) {
         delete tokensInfo[address]
     })
 
+    addrWithTrueCryptosysBadge.forEach(address => {
+      tokensInfo[address].hasTrueCryptoSysBadge = true
+    })
+
     return Object.keys(tokensInfo).map(address => [
       tokensInfo[address].ticker,
       tokensInfo[address].addr,
       tokensInfo[address].name,
       tokensInfo[address].symbolMultihash,
       tokensInfo[address].exchangeAddress,
-      tokensInfo[address].decimals
+      tokensInfo[address].decimals,
+      tokensInfo[address].hasTrueCryptoSysBadge
     ])
   } catch (err) {
-    // if (err.message.slice && err.message.slice(0, 14) === 'call exception') // This is an issue with infura. Simply try again.
-    //   return getTokensWithBadge(library, networkId)
-    // else {
-      console.error(err)
-      return []
-    // }
+    console.error(err)
+    return []
   }
 }
