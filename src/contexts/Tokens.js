@@ -152,8 +152,8 @@ export default function Provider({ children }) {
           token[NAME],
           token[SYMBOL],
           token[SYMBOL_MULTIHASH],
-          token[EXCHANGE_ADDRESS],
           token[DECIMALS],
+          token[EXCHANGE_ADDRESS],
           token[MISSING_ERC20_BADGE],
           token[MISSING_DECIMALS],
           token[HAS_TRUE_CRYPTOSYS_BADGE]
