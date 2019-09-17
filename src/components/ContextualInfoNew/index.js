@@ -4,6 +4,17 @@ import { transparentize } from 'polished'
 
 import { ReactComponent as Dropup } from '../../assets/images/dropup-blue.svg'
 import { ReactComponent as Dropdown } from '../../assets/images/dropdown-blue.svg'
+import Circle from '../../assets/images/circle.svg'
+import { Spinner } from '../../theme'
+
+const SpinnerWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+`
+
+const StyledSpinner = styled(Spinner)`
+  margin: 24px;
+`
 
 const SummaryWrapper = styled.div`
   color: ${({ error, theme }) => (error ? theme.salmonRed : theme.doveGray)};
@@ -92,9 +103,19 @@ export default function ContextualInfo({
   isError = false,
   slippageWarning,
   highSlippageWarning,
-  dropDownContent
+  dropDownContent,
+  missingUserInput
 }) {
   const [showDetails, setShowDetails] = useState(true)
+
+  if (!missingUserInput && !allowExpand) return (
+    <>
+      <SummaryWrapper>{contextualInfo}</SummaryWrapper>
+      {showDetails && <Details>
+        <SpinnerWrapper><StyledSpinner src={Circle} alt="loader"/></SpinnerWrapper>
+      </Details>}
+    </>
+  )
 
   return !allowExpand ? (
     <SummaryWrapper>{contextualInfo}</SummaryWrapper>

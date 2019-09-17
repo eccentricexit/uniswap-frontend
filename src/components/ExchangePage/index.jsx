@@ -16,7 +16,7 @@ import ArrowDown from '../../assets/svg/SVGArrowDown'
 import Circle from '../../assets/images/circle.svg'
 import { amountFormatter, calculateGasMargin } from '../../utils'
 import { useExchangeContract } from '../../hooks'
-import { useTokenDetails } from '../../contexts/Tokens'
+import { useTokenDetails, useFetchingTokens } from '../../contexts/Tokens'
 import { useTransactionAdder } from '../../contexts/Transactions'
 import { useAddressBalance, useExchangeReserves } from '../../contexts/Balances'
 import { useFetchAllBalances } from '../../contexts/AllBalances'
@@ -620,6 +620,7 @@ export default function ExchangePage({ initialCurrency, sending }) {
   const [customSlippageError, setcustomSlippageError] = useState('')
 
   const allBalances = useFetchAllBalances()
+  const isFetching = useFetchingTokens()
 
   return (
     <>
@@ -748,6 +749,7 @@ export default function ExchangePage({ initialCurrency, sending }) {
         swapType={swapType}
         inputDecimals={inputDecimals}
         outputDecimals={outputDecimals}
+        isFetching={isFetching}
       />
       <Flex>
         <Button
