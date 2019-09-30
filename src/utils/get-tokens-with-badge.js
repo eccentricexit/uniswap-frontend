@@ -1,6 +1,7 @@
 import _arbitrableAddressList from '../constants/abis/arbitrable-address-list.json'
 import _tokensView from '../constants/abis/tokens-view.json'
 import _exchangeView from '../constants/abis/exchange-view.json'
+import _erc20 from '../constants/abis/erc20.json'
 import { getContract } from './index'
 import {
   T2CR_ADDRESSES,
@@ -32,19 +33,40 @@ export default async function getTokensWithBadge(library, networkId) {
     )
     const tokensView = getContract(TOKENS_VIEW_ADDRESSES[networkId], _tokensView, library, ZERO_ADDRESS)
     const exchangeView = getContract(EXCHANGE_VIEW_ADDRESSES[networkId], _exchangeView, library, ZERO_ADDRESS)
-    let [addrWithERC20Badge, addrWithTrueCryptosysBadge] = await Promise.all([
-      erc20Badge.queryAddresses(ZERO_ADDRESS, 500, filter, true),
-      trueCryptosystemBadge.queryAddresses(ZERO_ADDRESS, 500, filter, true)
+    const [addrWithERC20Badge, addrWithTrueCryptosysBadge] = await Promise.all([
+      (async () => {
+        let hasMore = true
+        let lastAddress = ZERO_ADDRESS
+        let addresses = []
+        while (hasMore) {
+          const result = await erc20Badge.queryAddresses(ZERO_ADDRESS, 1000, filter, true)
+          addresses = addresses.concat(result[0].filter(
+            address => address !== ZERO_ADDRESS
+          ))
+          hasMore = result.hasMore
+          lastAddress = addresses.length > 0 ? addresses[addresses.length - 1] : lastAddress
+        }
+
+        return addresses
+      })(),
+      (async () => {
+        let hasMore = true
+        let lastAddress = ZERO_ADDRESS
+        let addresses = []
+        while (hasMore) {
+          const result = await trueCryptosystemBadge.queryAddresses(ZERO_ADDRESS, 1000, filter, true)
+          addresses = addresses.concat(result[0].filter(
+            address => address !== ZERO_ADDRESS
+          ))
+          hasMore = result.hasMore
+          lastAddress = addresses.length > 0 ? addresses[addresses.length - 1] : lastAddress
+        }
+        return addresses
+      })()
     ])
-    addrWithERC20Badge = addrWithERC20Badge[0].filter(
-      address => address !== ZERO_ADDRESS
-    )
-    addrWithTrueCryptosysBadge = addrWithTrueCryptosysBadge[0].filter(
-      address => address !== ZERO_ADDRESS
-    )
 
     const tokenIDs = (await tokensView.getTokensIDsForAddresses(T2CR_ADDRESSES[networkId], addrWithERC20Badge)).filter(tokenID => tokenID !== ZERO_ID)
-    const tokensInfo = (await tokensView.getTokens(
+    let tokensInfo = (await tokensView.getTokens(
       T2CR_ADDRESSES[networkId],
       tokenIDs
     ))
@@ -57,10 +79,36 @@ export default async function getTokensWithBadge(library, networkId) {
           tokenInfo.decimals = decimalsDictionary[tokenInfo[3]]
         return tokenInfo
       })
-      .reduce((acc, curr) => ({
-        ...acc,
-        [curr[3]]: curr
-      }), {})
+
+
+    // `tokensView.getTokens` returns 0 in the decimals field if
+    // the queried token does not have the `decimals` function.
+    // Iterate the list to detect if this is the case for a token
+    // and if so, use 18 decimal places as default.
+    tokensInfo.filter(tokenInfo => tokenInfo.decimals === '0')
+      .forEach(async (tokenInfo, i) => {
+        const erc20Token = getContract(
+          tokenInfo.addr,
+          _erc20,
+          library,
+          ZERO_ADDRESS
+        )
+        try {
+          const decimals = await erc20Token.decimals()
+          tokensInfo[i].decimals = decimals
+        } catch {
+          console.warn(`Token ${tokenInfo.addr} does
+            not implement the 'decimals()' function.
+            Falling back to the default, 18 decimal places.`
+          )
+          tokensInfo[i].decimals = '18'
+        }
+      })
+
+    tokensInfo = tokensInfo.reduce((acc, curr) => ({
+      ...acc,
+      [curr[3]]: curr
+    }), {})
 
     const addresses = Object.keys(tokensInfo)
     const exchangeAddresses = (await exchangeView.getExchanges(FACTORY_ADDRESSES[networkId], addresses)).slice(0, addresses.length)

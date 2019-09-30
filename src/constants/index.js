@@ -16,8 +16,8 @@ export const ERC20_BADGE_ADDRESSES = {
 }
 
 export const TOKENS_VIEW_ADDRESSES = {
-  1: '0xdc06b2e32399d3db41e69da4d112cf85dde4103f',
-  42: '0x0004d3791c0ce1a43ceba04993e2636af8361035'
+  1: '0xf9b9b5440340123b21bff1ddafe1ad6feb9d6e7f',
+  42: '0xaef5648bb17d474369e1b1eb0c742ba8968a7acc'
 }
 
 export const TRUE_CRYPTOSYSTEM_BADGE_ADDRESSES = {
