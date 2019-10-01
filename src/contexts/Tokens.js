@@ -69,12 +69,6 @@ function reducer(state, { type, payload }) {
       }
     }
     case SET_FETCHING: {
-      if (state.isFetching && payload === false) {
-        localStorage.setItem(
-          UNISWAP_NINJA_TOKENS_CACHE_KEY,
-          JSON.stringify({ ...state, isFetching: false})
-        )
-      }
       return {
         ...state,
         isFetching: payload
@@ -89,7 +83,7 @@ function reducer(state, { type, payload }) {
 const UNISWAP_NINJA_TOKENS_CACHE_KEY = 'UNISWAP_NINJA_TOKENS_CACHE_KEY'
 
 export default function Provider({ children }) {
-  let initialState = localStorage.getItem(UNISWAP_NINJA_TOKENS_CACHE_KEY)
+  let initialState = window.localStorage.getItem(UNISWAP_NINJA_TOKENS_CACHE_KEY)
   if (!initialState)
     initialState = { 1: {} }
   else
@@ -117,6 +111,7 @@ export default function Provider({ children }) {
     },
     []
   )
+
 
   const setFetching = isFetching =>
     dispatch({
@@ -163,6 +158,14 @@ export default function Provider({ children }) {
       setFetched(true)
     })()
   }, [fetched, library, networkId, state.isFetching, update])
+
+  useEffect(() => {
+    if (state.fetching || !fetched) return
+    window.localStorage.setItem(
+      UNISWAP_NINJA_TOKENS_CACHE_KEY,
+      JSON.stringify(state)
+    )
+  }, [fetched, state, state.fetching])
 
   return (
     <TokensContext.Provider value={useMemo(() => [state, { update }], [state, update])}>
