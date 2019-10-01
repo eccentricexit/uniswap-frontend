@@ -75,8 +75,10 @@ export default async function getTokensWithBadge(library, networkId) {
       .map(tokenInfo => {
         // Set decimals from dictionary, if available.
         // This is done because some token contracts (like DGD) may not implement the decimals() function.
-        if (decimalsDictionary[tokenInfo[3]])
+        if (decimalsDictionary[tokenInfo[3]]) {
+          console.warn(`  Setting number of decimal places of token ${tokenInfo.addr} from dictionary`)
           tokenInfo.decimals = decimalsDictionary[tokenInfo[3]]
+        }
         return tokenInfo
       })
 
@@ -85,8 +87,8 @@ export default async function getTokensWithBadge(library, networkId) {
     // the queried token does not have the `decimals` function.
     // Iterate the list to detect if this is the case for a token
     // and if so, use 18 decimal places as default.
-    tokensInfo.filter(tokenInfo => tokenInfo.decimals === '0')
-      .forEach(async (tokenInfo, i) => {
+    tokensInfo.filter(tokenInfo => tokenInfo.decimals === 0)
+      .forEach(async tokenInfo => {
         const erc20Token = getContract(
           tokenInfo.addr,
           _erc20,
@@ -95,13 +97,10 @@ export default async function getTokensWithBadge(library, networkId) {
         )
         try {
           const decimals = await erc20Token.decimals()
-          tokensInfo[i].decimals = decimals
+          tokenInfo.decimals = decimals
         } catch {
-          console.warn(`Token ${tokenInfo.addr} does
-            not implement the 'decimals()' function.
-            Falling back to the default, 18 decimal places.`
-          )
-          tokensInfo[i].decimals = '18'
+          console.warn(`Token ${tokenInfo.addr} does not implement the 'decimals()' function. Falling back to the default, 18 decimal places.`)
+          tokenInfo.decimals = 18
         }
       })
 
