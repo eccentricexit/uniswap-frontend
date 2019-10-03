@@ -580,7 +580,8 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
       )
     }
 
-    if (isFetching && (!filteredTokenList.length || filteredTokenList.length === 1))
+
+    if (isFetching && (!filteredTokenList.length || (filteredTokenList.length === 1 && !searchQuery)))
       return (
         <TokenModalInfo>
           <SpinnerWrapper src={Circle} alt="loader" />
