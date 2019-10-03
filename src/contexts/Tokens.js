@@ -80,15 +80,23 @@ function reducer(state, { type, payload }) {
   }
 }
 
-const UNISWAP_NINJA_TOKENS_CACHE_KEY = 'UNISWAP_NINJA_TOKENS_CACHE_KEY'
+const UNISWAP_NINJA_TOKENS_CACHE_KEY = 'UNISWAP_NINJA_TOKENS_CACHE'
 
 export default function Provider({ children }) {
-  let initialState = window.localStorage.getItem(UNISWAP_NINJA_TOKENS_CACHE_KEY)
-  if (!initialState)
-    initialState = { 1: {} }
-  else
-    initialState = JSON.parse(initialState)
+  const { library, networkId } = useWeb3Context()
+
+  let cachedTokens
+  if (networkId)
+    cachedTokens = window.localStorage.getItem(`${UNISWAP_NINJA_TOKENS_CACHE_KEY}@network${networkId}`)
+
+  const initialState = { 1: {}, 42: {} }
+  if (cachedTokens) {
+    cachedTokens = JSON.parse(cachedTokens)
+    initialState[networkId] = cachedTokens
+  }
+
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [loadedFromCache, setLoadedFromCache] = useState()
   const [fetched, setFetched] = useState()
 
   const update = useCallback(
@@ -112,6 +120,26 @@ export default function Provider({ children }) {
     []
   )
 
+  useEffect(() => {
+    if (loadedFromCache || !cachedTokens || !networkId) return
+
+    Object.keys(cachedTokens).forEach(address => {
+      update(
+        networkId,
+        cachedTokens[address][ADDRESS],
+        cachedTokens[address][NAME],
+        cachedTokens[address][SYMBOL],
+        cachedTokens[address][SYMBOL_MULTIHASH],
+        cachedTokens[address][DECIMALS],
+        cachedTokens[address][EXCHANGE_ADDRESS],
+        cachedTokens[address][MISSING_ERC20_BADGE],
+        cachedTokens[address][MISSING_DECIMALS],
+        cachedTokens[address][HAS_TRUE_CRYPTOSYS_BADGE]
+      )
+    })
+
+    setLoadedFromCache(true)
+  }, [cachedTokens, loadedFromCache, networkId, update])
 
   const setFetching = isFetching =>
     dispatch({
@@ -119,12 +147,10 @@ export default function Provider({ children }) {
       payload: isFetching
     })
 
-  const { library, networkId } = useWeb3Context()
-
   useEffect(() => {
     // Fetch tokens from t2cr.
     ;(async () => {
-      if (!library || state.isFetching || fetched) return
+      if (!library || state.isFetching || fetched ) return
       setFetching(true)
       const tokens = (await getTokensWithBadge(library, networkId)).map(
         token => ({
@@ -139,6 +165,10 @@ export default function Provider({ children }) {
           [HAS_TRUE_CRYPTOSYS_BADGE]: token[6]
         }),
         {}
+      )
+      window.localStorage.setItem(
+        `${UNISWAP_NINJA_TOKENS_CACHE_KEY}@network${networkId}`,
+        JSON.stringify(tokens.reduce((acc, curr) => ({...acc, [curr[ADDRESS]]: curr}),{}))
       )
       tokens.forEach(token => {
         update(
@@ -157,15 +187,7 @@ export default function Provider({ children }) {
       setFetching(false)
       setFetched(true)
     })()
-  }, [fetched, library, networkId, state.isFetching, update])
-
-  useEffect(() => {
-    if (state.fetching || !fetched) return
-    window.localStorage.setItem(
-      UNISWAP_NINJA_TOKENS_CACHE_KEY,
-      JSON.stringify(state)
-    )
-  }, [fetched, state, state.fetching])
+  }, [fetched, initialState, library, networkId, state, state.isFetching, update])
 
   return (
     <TokensContext.Provider value={useMemo(() => [state, { update }], [state, update])}>
