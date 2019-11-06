@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import styled from 'styled-components'
+import { useTranslation } from 'react-i18next'
 
 import { Link } from '../../theme'
 import logo from '../../assets/images/logo.png'
@@ -14,6 +15,7 @@ const HeaderFrame = styled.div`
 `
 
 const HeaderElement = styled.div`
+  align-items: center;
   margin: 1.25rem;
   display: flex;
   min-width: 0;
@@ -77,7 +79,55 @@ const ExtraLink = styled.h1`
   }
 `
 
+const LanguageSelect = styled.select`
+  align-items: center;
+  font-size: 0.8rem;
+  color: ${({ selected, theme }) => (selected ? theme.textColor : theme.royalBlue)};
+  height: 2rem;
+  border: 1px solid ${({ selected, theme }) => (selected ? theme.mercuryGray : theme.royalBlue)};
+  border-radius: 2rem;
+  background-color: ${({ selected, theme }) => (selected ? theme.concreteGray : theme.zumthorBlue)};
+  outline: none;
+  cursor: pointer;
+  margin-right: 6px;
+  min-width: 60px;
+  padding: 0.5rem;
+  user-select: none;
+
+  :hover {
+    border: 1px solid
+      ${({ selected, theme }) => (selected ? darken(0.1, theme.mercuryGray) : darken(0.1, theme.royalBlue))};
+  }
+
+  :focus {
+    border: 1px solid ${({ theme }) => darken(0.1, theme.royalBlue)};
+  }
+
+  :active {
+    background-color: ${({ theme }) => theme.zumthorBlue};
+  }
+`
+
+const languages = [
+  'de',
+  'en',
+  'es-AR',
+  'es-US',
+  'it-IT',
+  'ro',
+  'ru',
+  'zh-CN',
+  'zh-TW'
+]
+
 export default function Header() {
+
+  const { i18n } = useTranslation()
+  const changeLanguage = useCallback(e => {
+    // console.info(e.target.value)
+    i18n.changeLanguage(e.target.value)
+  },[i18n])
+
   return (
     <HeaderFrame>
       <HeaderElement>
@@ -94,6 +144,9 @@ export default function Header() {
         </Title>
       </HeaderElement>
       <HeaderElement>
+        <LanguageSelect value={i18n.language} onChange={changeLanguage}>
+          {languages.map(language =><option key={language}>{language}</option>)}
+        </LanguageSelect>
         <Web3Status />
       </HeaderElement>
     </HeaderFrame>
