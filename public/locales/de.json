@@ -78,5 +78,6 @@
   "missingERC20Badge": "hat nicht das ERC20 Abzeichen",
   "liquidity": "Liquidität",
   "marginalPrice": "Grenzpreis",
-  "missingDecimalPlaces": "Dieses Token kann nicht auf uniswap.ninja gehandelt werden, da in seinem Vertrag die Anzahl der Dezimalstellen nicht veröffentlicht wird."
+  "missingDecimalPlaces": "Dieses Token kann nicht auf uniswap.ninja gehandelt werden, da in seinem Vertrag die Anzahl der Dezimalstellen nicht veröffentlicht wird.",
+  "addAToken": "Fügen Sie einen Token hinzu"
 }

@@ -77,5 +77,6 @@
 	"missingERC20Badge": "no tiene la insignia ERC20",
 	"liquidity": "Liquidez",
 	"marginalPrice": "Precio marginal",
-	"missingDecimalPlaces": "Acest simbol nu poate fi tranzacționat pe uniswap.ninja deoarece contractul său nu publică numărul de zecimale."
+	"missingDecimalPlaces": "Acest simbol nu poate fi tranzacționat pe uniswap.ninja deoarece contractul său nu publică numărul de zecimale.",
+	"addAToken": "Agregar un token"
 }

@@ -78,5 +78,5 @@
   "liquidity": "流动性",
   "marginalPrice": "边际价格",
   "missingDecimalPlaces": "此通证无法在uniswap.ninja上交易，因为其合约未公布小数位数。",
-
+  "addAToken": "添加令牌"
 }

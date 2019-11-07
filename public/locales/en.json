@@ -89,5 +89,6 @@
   "marginalPrice": "Marginal Price",
   "missingDecimalPlaces": "This token can't be traded on uniswap.ninja because its contract does not publish the number of decimal places.",
   "priceChange": "Expected price slippage",
-  "forAtLeast": "for at least "
+  "forAtLeast": "for at least ",
+  "addAToken": "Add a Token"
 }
