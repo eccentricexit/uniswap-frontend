@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 
@@ -109,22 +109,25 @@ const LanguageSelect = styled.select`
 `
 
 const languages = [
-  'de',
-  'en',
-  'es-AR',
-  'es-US',
-  'it-IT',
-  'ro',
-  'ru',
-  'zh-CN',
-  'zh-TW'
+  {value: 'de', flag: '🇩🇪'},
+  {value: 'en', flag: '🇺🇸'},
+  {value: 'es-AR', flag: '🇦🇷'},
+  {value: 'es-US', flag: '🇪🇸'},
+  {value: 'it-IT', flag: '🇮🇹'},
+  {value: 'ro', flag: '🇷🇴'},
+  {value: 'ru', flag: '🇷🇺'},
+  {value: 'zh-CN', flag: '🇨🇳'},
+  {value: 'zh-TW', flag: '🇹🇼'},
 ]
 
 export default function Header() {
 
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
+  const [selectedLanguage, setSelectedLanguage] = useState()
+  useEffect(() => {
+    setSelectedLanguage(i18n.language)
+  }, [i18n.language])
   const changeLanguage = useCallback(e => {
-    // console.info(e.target.value)
     i18n.changeLanguage(e.target.value)
   },[i18n])
 
@@ -139,16 +142,17 @@ export default function Header() {
             <h1 id="title">Uniswap.Ninja</h1>
           </Link>
           <Link href="https://blog.kleros.io/erc20-becomes-part-of-the-token/">
-            <ExtraLink>Add a Token</ExtraLink>
+            <ExtraLink>{t('addAToken')}</ExtraLink>
           </Link>
         </Title>
       </HeaderElement>
       <HeaderElement>
-        <LanguageSelect value={i18n.language} onChange={changeLanguage}>
-          {languages.map(language =><option key={language}>{language}</option>)}
+        <LanguageSelect value={selectedLanguage} onChange={changeLanguage}>
+          {languages.map(l => <option key={l.value} value={l.value}>{l.flag}</option>)}
         </LanguageSelect>
         <Web3Status />
       </HeaderElement>
     </HeaderFrame>
   )
 }
+// l.substring(l.length-2,l.length)
