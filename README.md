@@ -1,39 +1,46 @@
-# Uniswap Frontend
+# Uniswap Interface
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/fa110555-b3c7-4eeb-b840-88a835009c62/deploy-status)](https://app.netlify.com/sites/uniswap/deploys)
-[![Build Status](https://travis-ci.org/Uniswap/uniswap-frontend.svg)](https://travis-ci.org/Uniswap/uniswap-frontend)
-[![Styled With Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/)
+[![Unit Tests](https://github.com/Uniswap/uniswap-interface/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/Uniswap/uniswap-interface/actions/workflows/unit-tests.yaml)
+[![Integration Tests](https://github.com/Uniswap/uniswap-interface/actions/workflows/integration-tests.yaml/badge.svg)](https://github.com/Uniswap/uniswap-interface/actions/workflows/integration-tests.yaml)
+[![Lint](https://github.com/Uniswap/uniswap-interface/actions/workflows/lint.yml/badge.svg)](https://github.com/Uniswap/uniswap-interface/actions/workflows/lint.yml)
+[![Release](https://github.com/Uniswap/uniswap-interface/actions/workflows/release.yaml/badge.svg)](https://github.com/Uniswap/uniswap-interface/actions/workflows/release.yaml)
+[![Crowdin](https://badges.crowdin.net/uniswap-interface/localized.svg)](https://crowdin.com/project/uniswap-interface)
 
-This an an open source interface for Uniswap - a protocol for decentralized exchange of Ethereum tokens.
+An open source interface for Uniswap -- a protocol for decentralized exchange of Ethereum tokens.
 
-- Website: [uniswap.io](https://uniswap.io/)
-- Docs: [docs.uniswap.io](https://docs.uniswap.io/)
-- Twitter: [@UniswapExchange](https://twitter.com/UniswapExchange)
-- Reddit: [/r/Uniswap](https://www.reddit.com/r/UniSwap/)
-- Email: [contact@uniswap.io](mailto:contact@uniswap.io)
-- Slack: [uni-swap.slack.com/](https://join.slack.com/t/uni-swap/shared_invite/enQtNDYwMjg1ODc5ODA4LWEyYmU0OGU1ZGQ3NjE4YzhmNzcxMDAyM2ExNzNkZjZjZjcxYTkwNzU0MGE3M2JkNzMxOTA2MzE2ZWM0YWQwNjU)
-- Whitepaper: [Link](https://hackmd.io/C-DvwDSfSxuh-Gd4WKE_ig)
+- Website: [uniswap.org](https://uniswap.org/)
+- Interface: [app.uniswap.org](https://app.uniswap.org)
+- Docs: [uniswap.org/docs/](https://uniswap.org/docs/)
+- Twitter: [@Uniswap](https://twitter.com/Uniswap)
+- Reddit: [/r/Uniswap](https://www.reddit.com/r/Uniswap/)
+- Email: [contact@uniswap.org](mailto:contact@uniswap.org)
+- Discord: [Uniswap](https://discord.gg/FCfyBSbCU5)
+- Whitepapers:
+  - [V1](https://hackmd.io/C-DvwDSfSxuh-Gd4WKE_ig)
+  - [V2](https://uniswap.org/whitepaper.pdf)
+  - [V3](https://uniswap.org/whitepaper-v3.pdf)
 
-## To Start Development
+## Accessing the Uniswap Interface
 
-### Install Dependencies
-
-```bash
-yarn
-```
-
-### Configure Environment
-
-Rename `.env.local.example` to `.env.local` and fill in the appropriate variables.
-
-### Run
-
-```bash
-yarn start
-```
-
-To run on a testnet, simply update the `.env.local` file appropriately.
+To access the Uniswap Interface, use an IPFS gateway link from the
+[latest release](https://github.com/Uniswap/uniswap-interface/releases/latest),
+or visit [app.uniswap.org](https://app.uniswap.org).
 
 ## Contributions
 
-**Please open all pull requests against the `beta` branch.** CI checks will run against all PRs. To ensure that your changes will pass, run `yarn check:all` before pushing. If this command fails, you can try to automatically fix problems with `yarn fix:all`, or do it manually.
+For steps on local deployment, development, and code contribution, please see [CONTRIBUTING](./CONTRIBUTING.md).
+
+## Accessing Uniswap V2
+
+The Uniswap Interface supports swapping, adding liquidity, removing liquidity and migrating liquidity for 
+Uniswap protocol V2.
+
+- Swap on Uniswap V2: https://app.uniswap.org/#/swap?use=v2
+- View V2 liquidity: https://app.uniswap.org/#/pool/v2
+- Add V2 liquidity: https://app.uniswap.org/#/add/v2
+- Migrate V2 liquidity to V3: https://app.uniswap.org/#/migrate/v2
+
+## Accessing Uniswap V1
+ 
+The Uniswap V1 interface for mainnet and testnets is accessible via IPFS gateways 
+linked from the [v1.0.0 release](https://github.com/Uniswap/uniswap-interface/releases/tag/v1.0.0).
